@@ -1,0 +1,23 @@
+name: Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test_job:
+    services:
+      clickhouse-server:
+        image: clickhouse/clickhouse-server:latest
+        ports:
+          - "8123:8123"
+          - "9000:9000"
+        volumes:
+          - clickhouse_data:/var/lib/clickhouse
+      clickhouse-client:
+        image: clickhouse/clickhouse-client:latest
+    runs-on: ubuntu-22.04
+    steps:
+    - name: test
+      shell: bash
+      run: docker ps && echo 1
+        
