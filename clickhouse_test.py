@@ -1,11 +1,11 @@
-import clickhouse_connect
+from clickhouse_driver import Client
 
-client = clickhouse_connect.get_client(
+client = Client(
     host="localhost",
-    port=8123,
+    port=9000,
     username="default",
     password=""
 )
 
-result = client.query("SELECT version()")
-print(result.result_rows[0][0])
+result = client.execute("SELECT version()")
+print(result)
