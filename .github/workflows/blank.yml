@@ -18,15 +18,14 @@ jobs:
           - clickhouse_data:/var/lib/clickhouse
     runs-on: ubuntu-22.04
     steps:
+    
     - uses: actions/checkout@v4
+    
     - name: Download python requirements
       shell: bash
       run: pip install -r requirements.txt
-    - name: run client
+    
+    - name: Run python test
       shell: bash
-      run: |
-        NAME=$(sudo docker ps --format json | jq 'select(.Image=="clickhouse/clickhouse-server:latest")' | jq -r .Names) 
-        echo $NAME
-        pip install clickhouse-driver
-        python3 clickhouse_test.py
+      run: python3 clickhouse_test.py
         
