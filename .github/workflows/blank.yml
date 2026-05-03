@@ -2,6 +2,10 @@ name: Test ClickHouse Connection
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+  pull_requests:
+    branches: [main]
 
 jobs:
   test_job:
