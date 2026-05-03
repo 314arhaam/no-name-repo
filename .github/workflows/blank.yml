@@ -9,8 +9,8 @@ jobs:
       clickhouse-server:
         image: clickhouse/clickhouse-server:latest
         env:
-          CLICKHOUSE_USER: test_user
-          CLICKHOUSE_PASSWORD: test_password
+          CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
+          CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
         ports:
           - "8123:8123"
           - "9000:9000"
