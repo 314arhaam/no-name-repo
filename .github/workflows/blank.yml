@@ -21,7 +21,5 @@ jobs:
     - name: run client
       shell: bash
       run: |
-        NAME=$(docker ps | awk '{print $7}' | tail -n 1)
-        echo $NAME
-        docker exec $NAME clickhouse-client --query "SELECT Verson()"
+        NAME=$(docker ps | awk '{print $7}' | tail -n 1) && echo $NAME && docker exec $NAME clickhouse-client --query "SELECT Verson()"
         
