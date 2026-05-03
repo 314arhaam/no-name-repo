@@ -1,11 +1,16 @@
 from clickhouse_driver import Client
+import dotenv, os
 
-client = Client(
-    host="localhost",
-    port=9000,
-    user="test_user",
-    password="test_password"
-)
-
-result = client.execute("SELECT version()")
-print(result)
+if __name__ == '__main__':
+    # load env file
+    dotenv.load_dotenv()
+    # create clickhouse client
+    client = Client(
+        host="localhost",
+        port=9000,
+        user=os.getenv("CLICKHOUSE_USER"),
+        password=os.getenv("CLICKHOUSE_PASSWORD")
+    )
+    # fetch version
+    result = client.execute("SELECT version()")
+    print(result)
