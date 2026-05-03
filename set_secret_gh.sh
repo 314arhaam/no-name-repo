@@ -1,0 +1,1 @@
+gh secret set -f .env
