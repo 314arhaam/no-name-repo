@@ -26,6 +26,12 @@ jobs:
       with:
         python-version: "3.12"
     
+    - name: Create .env
+      shell: bash
+      run: |
+        ${{ secrets.CLICKHOUSE_USER }} >> .env
+        ${{ secrets.CLICKHOUSE_PASSWORD }} >> .env
+    
     - name: Download python requirements
       shell: bash
       run: |
