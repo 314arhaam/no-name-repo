@@ -15,11 +15,14 @@ jobs:
           - clickhouse_data:/var/lib/clickhouse
     runs-on: ubuntu-22.04
     steps:
+    - uses: actions/checkout@v4
     - name: test
       shell: bash
       run: docker ps && echo 1
     - name: run client
       shell: bash
       run: |
-        NAME=$(sudo docker ps --format json | jq 'select(.Image=="clickhouse/clickhouse-server:latest")' | jq -r .Names) && echo $NAME && docker exec $NAME ls #clickhouse-client --query "SELECT Verson()"
+        NAME=$(sudo docker ps --format json | jq 'select(.Image=="clickhouse/clickhouse-server:latest")' | jq -r .Names) 
+        echo $NAME
+        python3 clickhouse_test.py
         
