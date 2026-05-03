@@ -28,7 +28,9 @@ jobs:
     
     - name: Download python requirements
       shell: bash
-      run: pip install -r requirements.txt
+      run: |
+        python -m install --upgrade pip
+        pip install -r requirements.txt
     
     - name: Run python test
       shell: bash
