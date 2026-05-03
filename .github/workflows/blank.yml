@@ -24,5 +24,6 @@ jobs:
       run: |
         NAME=$(sudo docker ps --format json | jq 'select(.Image=="clickhouse/clickhouse-server:latest")' | jq -r .Names) 
         echo $NAME
+        pip install clickhouse-connect
         python3 clickhouse_test.py
         
