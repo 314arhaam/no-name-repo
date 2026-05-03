@@ -35,7 +35,7 @@ jobs:
         python-version: "3.12"
     
     - name: Create .env
-      working_directory: ./tests
+      working-directory: ./tests
       shell: bash
       run: |
         echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
@@ -43,13 +43,13 @@ jobs:
     
     - name: Download python requirements
       shell: bash
-      working_directory: ./tests
+      working-directory: ./tests
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
     - name: Run python test
       shell: bash
-      working_directory: ./tests
+      working-directory: ./tests
       run: python3 clickhouse_test.py
         
