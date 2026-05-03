@@ -29,8 +29,8 @@ jobs:
     - name: Create .env
       shell: bash
       run: |
-        ${{ secrets.CLICKHOUSE_USER }} >> .env
-        ${{ secrets.CLICKHOUSE_PASSWORD }} >> .env
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
     
     - name: Download python requirements
       shell: bash
