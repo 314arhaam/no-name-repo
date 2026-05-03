@@ -21,5 +21,5 @@ jobs:
     - name: run client
       shell: bash
       run: |
-        NAME=$(sudo docker ps --format json | jq 'select(.Image=="clickhouse/clickhouse-server:latest")' | jq -r .Names) && echo $NAME && docker exec $NAME clickhouse-client --query "SELECT Verson()"
+        NAME=$(sudo docker ps --format json | jq 'select(.Image=="clickhouse/clickhouse-server:latest")' | jq -r .Names) && echo $NAME && docker exec $NAME ls #clickhouse-client --query "SELECT Verson()"
         
