@@ -1,0 +1,20 @@
+services:
+  clickhouse-server:
+    image: clickhouse/clickhouse-server:latest
+    networks:
+      - analytics_network
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - clickhouse_data:/var/lib/clickhouse
+    env_file:
+      - clickhouse.env
+
+volumes:
+  clickhouse_data:
+
+networks:
+  analytics_network:
+    driver: bridge
