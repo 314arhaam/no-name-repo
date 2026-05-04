@@ -28,7 +28,7 @@ def main():
     with engine.begin() as conn:
         df_to_write.to_sql(
             name=table_name,
-            database=db
+            database=db,
             con=conn,
             if_exists="replace",
             index=False,
