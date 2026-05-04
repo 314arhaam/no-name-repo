@@ -46,6 +46,15 @@ jobs:
       run: |
         chmod +x ./build.sh && ./build.sh
     
+    - name: Create .env file for Data Generator
+      working-directory: ./services/banner-data
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_HOST=clickhouse-clickhouse-server-1" >> .env
+        echo "CLICKHOUSE_PORT=9000" >> .env
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+
     - name: Run banner data generator
       shell: bash
       working-directory: ./services/banner-data
