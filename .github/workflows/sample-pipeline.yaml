@@ -42,9 +42,8 @@ jobs:
     
     - name: Verify Table
       shell: bash
-      env:
-        CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
       run: |
         docker exec clickhouse-clickhouse-server-1 clickhouse-client \ 
           -u ${{ secrets.CLICKHOUSE_USER }} \ 
+          -p ${{ secrets.CLICKHOUSE_PASSWORD }} \ 
           --query "SHOW databases"
