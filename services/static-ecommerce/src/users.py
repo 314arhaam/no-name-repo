@@ -9,7 +9,7 @@ def generate(n: int) -> pd.DataFrame:
         "first_name": [],
         "last_name": [],
         "city": [],
-        "address": [],
+        "active_address": [],
         "is_pro": [],
         "email": []
     }
@@ -25,7 +25,7 @@ def generate(n: int) -> pd.DataFrame:
         data["first_name"].append(name.split()[0])
         data["last_name"].append(name.split()[1])
         data["city"].append(fake.city())
-        data["address"].append(fake.street_address())
+        data["active_address"].append(fake.street_address())
         data["email"].append(fake.unique.safe_email())
         data["is_pro"] = (random.randint(1, 100) % 5 == 0)
     return pd.DataFrame(data)
