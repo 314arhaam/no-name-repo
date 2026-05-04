@@ -1,4 +1,4 @@
-from clickhouse_connect
+import clickhouse_connect
 import os
 
 if __name__ == '__main__':
