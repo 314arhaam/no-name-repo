@@ -10,7 +10,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - clickhouse_data:/var/lib/clickhouse
     env_file:
-      - clickhouse.env
+      - .env
 
 volumes:
   clickhouse_data:
