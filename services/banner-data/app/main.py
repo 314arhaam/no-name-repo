@@ -30,7 +30,7 @@ if __name__ == "__main__":
         user = os.getenv("CLICKHOUSE_USER"),
         password = os.getenv("CLICKHOUSE_PASSWORD"),
     )
-    client.insert_df(
+    client.insert_dataframe(
         "cicd_test_event_db.banner_view",
         data
     )
