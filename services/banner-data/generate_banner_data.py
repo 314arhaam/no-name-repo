@@ -10,7 +10,7 @@ class BannerView:
         data_list = []
         for i in range(n):
             data = {
-                "event_time": datetime.datetime.now().strftime("%Y-%m%d %H:%M:%S"),
+                "event_time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "banner_id": random.randint(1, self.n_banners+1),
                 "user_id": random.randint(1, self.n_users+1)
             }
