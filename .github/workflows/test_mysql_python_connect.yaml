@@ -31,7 +31,7 @@ jobs:
     - name: Setup MySQL
       shell: bash
       working-directory: ./infra/mysql
-      run: docker compose up --build -d
+      run: docker compose -f docker-compose-dev.yaml up --build -d
     
     - name: Verify MySQL
       shell: bash
