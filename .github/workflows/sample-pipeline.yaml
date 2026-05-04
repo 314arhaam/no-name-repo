@@ -40,7 +40,7 @@ jobs:
       run: |
         docker ps
     
-    - name: Buid banner data generator
+    - name: Bulid banner data generator
       shell: bash
       working-directory: ./services/banner-data
       run: |
