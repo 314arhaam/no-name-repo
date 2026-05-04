@@ -26,6 +26,6 @@ def generate(n: int) -> pd.DataFrame:
         data["last_name"].append(name.split()[1])
         data["city"].append(fake.city())
         data["address"].append(fake.street_address())
-        data["email"].append(fake.safe_email())
+        data["email"].append(fake.unique.safe_email())
         data["is_pro"] = (random.randint(1, 100) % 5 == 0)
     return pd.DataFrame(data)
