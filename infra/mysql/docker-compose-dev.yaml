@@ -1,0 +1,23 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_server
+    networks:
+      - analytics_network
+    env_file:
+      - .env
+    #environment:
+    #  MYSQL_ROOT_PASSWORD: root_password     # Root password
+    #  MYSQL_DATABASE: mydb                   # Default database
+    #  MYSQL_USER: myuser                     # User
+    #  MYSQL_PASSWORD: mypass                 # User password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+networks:
+  analytics_network:
+    name: analytics_network
+    driver: bridge
