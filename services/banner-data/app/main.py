@@ -1,5 +1,5 @@
 import pandas as pd
-import clickhouse_driver
+import clickhouse_connect
 import os, random, datetime, sys
 
 class BannerView:
@@ -24,13 +24,13 @@ if __name__ == "__main__":
         n = 100
     data = BannerView().generate(n)
     print(data)
-    client = clickhouse_driver.Client(
+    client = clickhouse_connect.get_client(
         host = os.getenv("CLICKHOUSE_HOST"),
         port = os.getenv("CLICKHOUSE_PORT"),
-        user = os.getenv("CLICKHOUSE_USER"),
+        username = os.getenv("CLICKHOUSE_USER"),
         password = os.getenv("CLICKHOUSE_PASSWORD"),
     )
-    client.insert_dataframe(
-        "INSERT INTO TABLE cicd_test_event_db.banner_view (event_time, banner_id, user_id) VALUES",
+    client.insert_df(
+        "cicd_test_event_db.banner_view",
         data
     )
