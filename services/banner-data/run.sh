@@ -1,4 +1,4 @@
 docker run \
     --network analytics_network \
-    --env-file banner-data-generator.env \
+    --env-file .env \
     banner-data-generator 
