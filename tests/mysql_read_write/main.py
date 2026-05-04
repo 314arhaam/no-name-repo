@@ -21,19 +21,21 @@ def main():
         "banner_id": [1000],
         "user_id": [101],
     })
-    table_name = "cicd_test_event_db.banner_view"
+    db = 'cicd_test_event_db'
+    table_name = "banner_view"
     # ---- Write DataFrame to MySQL ----
     # Uses a transaction and replaces table if it already exists
     with engine.begin() as conn:
         df_to_write.to_sql(
             name=table_name,
+            database=db
             con=conn,
             if_exists="replace",
             index=False,
             method="multi"
         )
     # ---- Read data back into a DataFrame with proper column names ----
-    df_read = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
+    df_read = pd.read_sql(f"SELECT * FROM {db}.{table_name}", con=engine)
     print("Data written to MySQL:")
     print(df_to_write)
     print("\nData read back from MySQL:")
