@@ -40,10 +40,8 @@ jobs:
       run: |
         docker ps
     
-    - name: Verify Table
+    - name: Buid banner data generator
       shell: bash
+      working-directory: ./services/bannar-data
       run: |
-        docker exec clickhouse-clickhouse-server-1 clickhouse-client \ 
-          -u ${{ secrets.CLICKHOUSE_USER }} \ 
-          -p ${{ secrets.CLICKHOUSE_PASSWORD }} \ 
-          --query "SHOW databases"
+        chmod +x ./build.sh && ./build.sh
