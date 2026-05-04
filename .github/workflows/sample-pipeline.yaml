@@ -44,4 +44,4 @@ jobs:
       shell: bash
       working-directory: ./services/bannar-data
       run: |
-        chmod +x ./build.sh && ./build.sh
+        ls && pwd
