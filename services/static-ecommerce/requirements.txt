@@ -1,0 +1,6 @@
+pandas
+faker==40.15.0
+faker-commerce==1.0.4
+SQLAlchemy
+PyMySQL
+dotenv
