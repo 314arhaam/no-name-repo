@@ -1,13 +1,11 @@
 from clickhouse_connect
-import dotenv, os
+import os
 
 if __name__ == '__main__':
-    # load env file
-    dotenv.load_dotenv()
     # create clickhouse client
     client = clickhouse_connect.get_client(
-        host="localhost",
-        port=8123,
+        host=os.getenv("CLICKHOUSE_HOST"),
+        port=os.getenv("CLICKHOUSE_PORT"),
         username=os.getenv("CLICKHOUSE_USER"),
         password=os.getenv("CLICKHOUSE_PASSWORD")
     )
