@@ -13,8 +13,14 @@ def generate(n: int) -> pd.DataFrame:
         "is_pro": [],
         "email": []
     }
+    user_id_set = set()
     for i in range(n):
-        data["user_id"].append(int("100" + str(random.randint(1, 10000))))
+        while True:
+            user_id = int("100" + str(random.randint(1, 10000)))
+            if user_id not in user_id_set:
+                user_id_set.add(user_id)
+                break
+        data["user_id"].append(user_id)
         name = fake.name()
         data["first_name"].append(name.split()[0])
         data["last_name"].append(name.split()[1])
