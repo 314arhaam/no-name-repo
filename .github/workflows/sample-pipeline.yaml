@@ -82,5 +82,5 @@ jobs:
     
     - name: Run python reporter
       shell: bash
-      working-directory: ./tests
+      working-directory: ./services/reporter
       run: python3 reporter.py
