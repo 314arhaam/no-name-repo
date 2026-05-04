@@ -1,2 +1,2 @@
-clickhouse-driver
-dotenv
+clickhouse-connect
+pandas
