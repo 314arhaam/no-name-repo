@@ -50,7 +50,7 @@ jobs:
       working-directory: ./services/banner-data
       shell: bash
       run: |
-        echo "CLICKHOUSE_HOST=clickhouse-clickhouse-server-1" >> .env
+        echo "CLICKHOUSE_HOST=clickhouse_server" >> .env
         echo "CLICKHOUSE_PORT=9000" >> .env
         echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
