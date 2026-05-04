@@ -61,7 +61,7 @@ if __name__ == "__main__":
         user = os.getenv("MYSQL_USER")
         password = os.getenv("MYSQL_PASSWORD")
         # SQLAlchemy engine string for MySQL (PyMySQL driver)
-        engine = create_engine(
+        engine = sqlalchemy.create_engine(
             f"mysql+pymysql://{user}:{password}@{host}:{port}",
             echo=False,  # set to True to debug SQL
             pool_recycle=3600
