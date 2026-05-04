@@ -1,6 +1,6 @@
 import pandas as pd
 from sqlalchemy import create_engine
-import dotenv, datetime
+import dotenv, datetime, os
 
 def main():
     # ---- Connection settings (adjust to your environment) ----
