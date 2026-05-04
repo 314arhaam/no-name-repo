@@ -4,6 +4,6 @@ WORKDIR app/
 
 COPY . .
 
-RUN pip install -i https://package-mirror.liara.ir/repository/pypi/simple --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 CMD ["python3", "app/main.py"]
