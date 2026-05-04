@@ -18,5 +18,4 @@ volumes:
 
 networks:
   analytics_network:
-    name: analytics_network
-    driver: bridge
+    external: true

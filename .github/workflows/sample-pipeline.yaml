@@ -17,6 +17,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Create docker network
+      shell: bash
+      run: docker network create --attachable --driver bridge analytics_network
+    
+    - name: Verify network
+      shell: bash
+      run: docker network ls
+    
     - name: Create .env file for Clickhouse
       working-directory: ./infra/clickhouse
       shell: bash
