@@ -16,7 +16,7 @@ def generate(n: int) -> pd.DataFrame:
     user_id_set = set()
     for i in range(n):
         while True:
-            user_id = int("100" + str(random.randint(1, 10000)))
+            user_id = int("100" + str(random.randint(1, 10000*n)))
             if user_id not in user_id_set:
                 user_id_set.add(user_id)
                 break
