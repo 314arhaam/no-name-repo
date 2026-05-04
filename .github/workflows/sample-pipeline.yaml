@@ -45,3 +45,9 @@ jobs:
       working-directory: ./services/banner-data
       run: |
         chmod +x ./build.sh && ./build.sh
+    
+    - name: Run banner data generator
+      shell: bash
+      working-directory: ./services/banner-data
+      run: |
+        chmod +x ./run.sh && ./run.sh
