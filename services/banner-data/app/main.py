@@ -31,6 +31,6 @@ if __name__ == "__main__":
         password = os.getenv("CLICKHOUSE_PASSWORD"),
     )
     client.insert_dataframe(
-        "cicd_test_event_db.banner_view",
+        "INSERT INTO TABLE cicd_test_event_db.banner_view (event_time, banner_id, user_id) VALUES",
         data
     )
