@@ -1,6 +1,6 @@
 import pandas as pd
 import clickhouse_driver
-import os, dotenv, uuid, random, datetime, sys
+import os, random, datetime, sys
 
 class BannerView:
     def __init__(self, n_banners: int = 10, n_users: int = 100):
