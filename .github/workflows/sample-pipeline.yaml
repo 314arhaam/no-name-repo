@@ -1,0 +1,36 @@
+name: Sample Pipeline
+
+on:
+  workflow_dispatch:
+#  push:
+#    branches: [ "main" ]
+#  pull_request:
+#    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  data-pipeline:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create .env file for Clickhouse
+      working-directory: ./infra/clickhouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+
+    - name: Verify .env
+      working-directory: ./infra/clickhouse
+      shell: bash
+      run: ls -l .env
+
+    - name: Clickhouse docker compose
+      shell: bash
+      working-directory: ./infra/clickhouse
+      run: |
+        docker compose up --build -d
