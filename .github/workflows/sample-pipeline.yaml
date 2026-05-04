@@ -67,10 +67,12 @@ jobs:
       run: |
         chmod +x ./build.sh && ./build.sh
     
-    - name: Create .env
+    - name: Create .env for reporter
       working-directory: ./services/reporter
       shell: bash
       run: |
+        echo "CLICKHOUSE_HOST=clickhouse_server" >> .env
+        echo "CLICKHOUSE_PORT=8123" >> .env
         echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
     
