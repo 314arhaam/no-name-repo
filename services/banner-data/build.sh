@@ -1,0 +1,1 @@
+docker build -t banner-data-generator:latest .

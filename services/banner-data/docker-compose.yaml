@@ -1,0 +1,15 @@
+services:
+  data-generator:
+    build:
+      context: .
+    networks:
+      - analytics_network
+    env_file:
+      - data-generator.env
+
+volumes:
+  clickhouse_data:
+
+networks:
+  analytics_network:
+    external: true
