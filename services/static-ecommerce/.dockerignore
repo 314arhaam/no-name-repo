@@ -1,0 +1,6 @@
+*.env
+docker-compose*
+Dockerfile*
+*.sh
+*-venv
+__pycache__
