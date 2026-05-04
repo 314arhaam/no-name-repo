@@ -34,3 +34,8 @@ jobs:
       working-directory: ./infra/clickhouse
       run: |
         docker compose up --build -d
+    
+    - name: Verify Clickhouse
+      shell: bash
+      run: |
+        docker ps
