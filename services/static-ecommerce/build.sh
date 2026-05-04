@@ -1,1 +1,1 @@
-docker build -t reporter:latest .
+docker build -t ecommerce:latest .
