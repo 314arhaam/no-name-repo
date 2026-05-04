@@ -1,0 +1,38 @@
+name: Test MySQL Connection
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test_job:
+    runs-on: ubuntu-22.04
+
+    steps:
+    
+    - uses: actions/checkout@v4
+
+    - name: Create MySQL .env
+      shell: bash
+      working-directory: ./infra/mysql
+      run: |
+        echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+    
+    - name: Setup MySQL
+      shell: bash
+      working-directory: ./infra/mysql
+      run: docker compose up --build -d
+    
+    - name: Verify MySQL
+      shell: bash
+      run: docker ps
