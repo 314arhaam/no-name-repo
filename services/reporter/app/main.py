@@ -12,3 +12,5 @@ if __name__ == '__main__':
     # fetch version
     result = client.query_df("SELECT * FROM cicd_test_event_db.banner_view limit 10")
     print(result)
+    result = client.query_df("SELECT banner_id, countDistinct(user_id) FROM cicd_test_event_db.banner_view group by banner_id")
+    print(result)
