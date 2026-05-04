@@ -2,7 +2,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql_server
-    network:
+    networks:
       - analytics_network
     env_file:
       - .env
