@@ -110,7 +110,20 @@ jobs:
       working-directory: ./services/etl
       run: |
         docker build -t $ETL_IMG .
-    
+
+    - name: Checking databases
+      shell: bash
+      run: |
+        timeout 60s bash -c '
+        until 
+          source ./services/etl/.env;
+          sudo docker exec -i -e MYSQL_PWD=$MYSQL_PWD $MYSQL_HOST mysql -u$MYSQL_USER -e"SELECT 1;" --silent; 
+          do 
+            echo "Waiting for MySQL"; 
+            sleep 2; 
+          done;
+        '
+
     - name: Run ecommerce
       shell: bash
       working-directory: ./services/static-ecommerce
