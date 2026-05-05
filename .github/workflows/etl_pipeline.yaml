@@ -57,11 +57,6 @@ jobs:
       working-directory: ./infra/mysql
       run: docker compose up --build -d
     
-#    - name: Test MySQL CLI in container
-#      shell: bash
-#      run: |
-#        MYSQL_USR=${{ secrets.MYSQL_USER }}
-#        docker exec -i -e MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }} mysql_server mysql -h 127.0.0.1 -u$MYSQL_USR -e "SELECT 1;"
     - name: Create .env file for Clickhouse
       working-directory: ./infra/clickhouse
       shell: bash
@@ -117,7 +112,7 @@ jobs:
         timeout 60s bash -c '
         until 
           source ./services/etl/.env;
-          sudo docker exec -i -e MYSQL_PWD=$MYSQL_PWD $MYSQL_HOST mysql -u$MYSQL_USER -e"SELECT 1;" --silent; 
+          sudo docker exec -i -e MYSQL_PWD=$MYSQL_PASSWORD $MYSQL_HOST mysql -u$MYSQL_USER -e"SELECT 1;" --silent; 
           do 
             echo "Waiting for MySQL"; 
             sleep 2; 
