@@ -35,7 +35,7 @@ jobs:
     - name: Verify network
       shell: bash
       run: |
-        NET_DATA=$(docker network ls --filter "NAME=test_net011" --format json | jq)
+        NET_DATA=$(docker network ls --filter "NAME=$NETWORK_NAME" --format json | jq)
         if [[ $NET_DATA == "" ]]; then 
           echo "Network not found"
           exit 1; 
