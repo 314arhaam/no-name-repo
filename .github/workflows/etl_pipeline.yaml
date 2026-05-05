@@ -45,18 +45,18 @@ jobs:
       shell: bash
       run: docker ps
     
-    - name: Test socket connection
+    - name: Test MySQL CLI in container
       shell: bash
       run: |
         MYSQL_USR=${{ secrets.MYSQL_USER }}
-        docker exec -i -e MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }} mysql_server mysql -u$MYSQL_USR -e "SELECT 1;"
+        docker exec -i -e MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }} mysql_server mysql -h 127.0.0.1 -u$MYSQL_USR -e "SELECT 1;"
 
     - name: Create user tables
       shell: bash
       working-directory: ./infra/mysql
       run: |
         MYSQL_USR=${{ secrets.MYSQL_USER }}
-        docker exec -i -e MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }} mysql_server mysql -u$MYSQL_USR < create_dim_fact.sql
+        docker exec -i -e MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }} mysql_server mysql -h 127.0.0.1 -u$MYSQL_USR < create_dim_fact.sql
 
     - name: Create .env
       working-directory: ./services/static-ecommerce
