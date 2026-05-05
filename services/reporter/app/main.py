@@ -1,6 +1,6 @@
 import src.mysql
 import src.clickhouse
-import sys, json, argparse
+import sys, json, argparse, os
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Query to Dataframe CLI")
@@ -15,14 +15,19 @@ if __name__ == '__main__':
             config = json.load(f)
     else:
         raise ValueError("Specify --config or --file")
-    if "driver" not in config.keys() or "query" not in config.keys():
-        raise KeyError("Config file requires `driver` and `query` fields.")
+    if "driver" not in config.keys():
+        raise KeyError("Config file requires `driver` field.")
     match config["driver"]:
         case "clickhouse":
             driver = src.clickhouse.ClickHouse()
         case "mysql":
             driver = src.mysql.MySQL()
-    data = driver.query_df(config["query"])
+    if config.get("query"):
+        data = driver.query_df(config["query"])
+    else:
+        data = driver.ping()
+        print(data)
+        sys.exit()
     if config.get("output"):
         data.to_csv(config["output"])
     else:
