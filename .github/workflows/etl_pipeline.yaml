@@ -146,7 +146,7 @@ jobs:
         docker run \
           --network $NETWORK_NAME \
           --env-file .env \
-          $DATA_SOURCE_IMG --user 2 --product 3 --order 5
+          $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
     
     - name: Run ETL
       shell: bash
@@ -157,7 +157,7 @@ jobs:
           --env-file .env \
           $ETL_IMG
     
-    - name:
+    - name: Run reporter in mysql
       shell: bash
       run: | 
         cp ./services/etl/.env .
@@ -165,4 +165,23 @@ jobs:
           --network analytics_network \
           --env-file .env \
           --volume ./services/reporter/data/:/data \
-          $REPORTER_IMG --config '{"driver": "mysql", "query": "select 10"}'
+          $REPORTER_IMG --config '
+            {
+              "driver": "mysql", 
+              "query": "SELECT * FROM fact.order LIMIT 100"
+            }
+          '
+    - name: Run reporter in clickhouse
+      shell: bash
+      run: | 
+        cp ./services/etl/.env .
+        docker run \
+          --network analytics_network \
+          --env-file .env \
+          --volume ./services/reporter/data/:/data \
+          $REPORTER_IMG --config '
+            {
+              "driver": "clickhouse", 
+              "query": "SELECT * FROM analytics.daily_order LIMIT 100"
+            }
+          '
