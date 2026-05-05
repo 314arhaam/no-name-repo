@@ -17,6 +17,10 @@ jobs:
       DATA_SOURCE_IMG: "ecommerce:latest"
       ETL_IMG: "etl:latest"
       NETWORK_NAME: analytics_network
+      MYSQL_HOST: mysql_server
+      MYSQL_PORT: 3306
+      CLICKHOUSE_HOST: clickhouse_server
+      CLICKHOUSE_PORT: 8123
     
     runs-on: ubuntu-22.04
 
@@ -85,8 +89,8 @@ jobs:
         echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
         echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
         echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
-        echo "MYSQL_HOST=mysql_server" >> .env
-        echo "MYSQL_PORT=3306" >> .env
+        echo $MYSQL_HOST >> .env
+        echo $MYSQL_PORT >> .env
     
     - name: Bulid ecommerce
       shell: bash
@@ -110,12 +114,12 @@ jobs:
         echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
         echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
         echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
-        echo "MYSQL_HOST=mysql_server" >> .env
-        echo "MYSQL_PORT=3306" >> .env
+        echo $MYSQL_HOST >> .env
+        echo $MYSQL_PORT >> .env
         echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
-        echo "CLICKHOUSE_HOST=clickhouse_server" >> .env
-        echo "CLICKHOUSE_PORT=8123" >> .env
+        echo $CLICKHOUSE_HOST >> .env
+        echo 4CLICKHOUSE_PORT >> .env
     
     - name: Bulid ETL
       shell: bash
