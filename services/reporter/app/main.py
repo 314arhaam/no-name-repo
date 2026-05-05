@@ -1,16 +1,29 @@
-import clickhouse_connect
-import os
+import src.mysql
+import src.clickhouse
+import sys, json, argparse
 
 if __name__ == '__main__':
-    # create clickhouse client
-    client = clickhouse_connect.get_client(
-        host=os.getenv("CLICKHOUSE_HOST"),
-        port=os.getenv("CLICKHOUSE_PORT"),
-        username=os.getenv("CLICKHOUSE_USER"),
-        password=os.getenv("CLICKHOUSE_PASSWORD")
-    )
-    # fetch version
-    result = client.query_df("SELECT * FROM cicd_test_event_db.banner_view limit 10")
-    print(result)
-    result = client.query_df("SELECT banner_id, countDistinct(user_id) FROM cicd_test_event_db.banner_view group by banner_id")
-    print(result)
+    parser = argparse.ArgumentParser(description="Query to Dataframe CLI")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--config', type=str, help='Config string')
+    group.add_argument('--file', type=str, help='Config file path')
+    args = parser.parse_args()
+    if args.config:
+        config = json.loads(args.config)
+    elif args.file:
+        with open(args.file, 'r') as f:
+            config = json.load(f)
+    else:
+        raise ValueError("Specify --config or --file")
+    if "driver" not in config.keys() or "query" not in config.keys():
+        raise KeyError("Config file requires `driver` and `query` fields.")
+    match config["driver"]:
+        case "clickhouse":
+            driver = src.clickhouse.ClickHouse()
+        case "mysql":
+            driver = src.mysql.MySQL()
+    data = driver.query_df(config["query"])
+    if config.get("output"):
+        data.to_csv(config["output"])
+    else:
+        print(data.head())
