@@ -8,7 +8,7 @@ services:
       - "8123:8123"
       - "9000:9000"
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./queries:/docker-entrypoint-initdb.d/
       - clickhouse_data:/var/lib/clickhouse
     env_file:
       - .env
