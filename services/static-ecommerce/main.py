@@ -9,19 +9,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "-u", 
         "--user",
-        default=100,
+        default=2,
         type=int
     )
     parser.add_argument(
         "-p", 
         "--product",
-        default=100,
+        default=2,
         type=int
     )
     parser.add_argument(
         "-o", 
         "--order",
-        default=1000,
+        default=10,
         type=int
     )
     parser.add_argument(
