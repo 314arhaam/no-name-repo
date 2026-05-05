@@ -49,8 +49,14 @@ jobs:
       shell: bash
       run: |
         MYSQL_USR=${{ secrets.MYSQL_USER }}
-        MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }}
-        docker exec -i mysql_server mysql -u $MYSQL_USR -p $MYSQL_PWD -e "SELECT 1;"
+        docker exec -i -e MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }} mysql_server mysql -u$MYSQL_USR -e "SELECT 1;"
+
+    - name: Create user tables
+      shell: bash
+      working-directory: ./infra/mysql
+      run: |
+        MYSQL_USR=${{ secrets.MYSQL_USER }}
+        docker exec -i -e MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }} mysql_server mysql -u$MYSQL_USR < create_dim_fact.sql
 
     - name: Create .env
       working-directory: ./services/static-ecommerce
