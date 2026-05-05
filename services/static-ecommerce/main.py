@@ -62,7 +62,7 @@ if __name__ == "__main__":
         password = os.getenv("MYSQL_PASSWORD")
         # SQLAlchemy engine string for MySQL (PyMySQL driver)
         engine = sqlalchemy.create_engine(
-            f"mysql+pymysql://{user}:{password}@{host}:{port}",
+            f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}?charset=utf8mb4",
             echo=False,  # set to True to debug SQL
             pool_recycle=3600
         )
