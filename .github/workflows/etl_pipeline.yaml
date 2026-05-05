@@ -13,6 +13,11 @@ concurrency:
 
 jobs:
   test_job:
+    env:
+      DATA_SOURCE_IMG: "ecommerce:latest"
+      ETL_IMG: "etl:latest"
+      NETWORK_NAME: analytics_network
+    
     runs-on: ubuntu-22.04
 
     steps:
@@ -21,7 +26,7 @@ jobs:
 
     - name: Create docker network
       shell: bash
-      run: docker network create --attachable --driver bridge analytics_network
+      run: docker network create --attachable --driver bridge $NETWORK_NAME
     
     - name: Verify network
       shell: bash
@@ -87,13 +92,16 @@ jobs:
       shell: bash
       working-directory: ./services/static-ecommerce
       run: |
-        chmod +x ./build.sh && ./build.sh
+        docker build -t $DATA_SOURCE_IMG .
     
     - name: Run ecommerce
       shell: bash
       working-directory: ./services/static-ecommerce
       run: |
-        chmod +x ./run.sh && ./run.sh
+        docker run \
+          --network $NETWORK_NAME \
+          --env-file .env \
+          $DATA_SOURCE_IMG
     
     - name: Create .env for ETL
       working-directory: ./services/etl
@@ -113,10 +121,13 @@ jobs:
       shell: bash
       working-directory: ./services/etl
       run: |
-        chmod +x ./build.sh && ./build.sh
+        docker build -t $ETL_IMG .
     
     - name: Run ETL
       shell: bash
       working-directory: ./services/etl
       run: |
-        chmod +x ./run.sh && ./run.sh
+        docker run \
+          --network $NETWORK_NAME \
+          --env-file .env \
+          $ETL_IMG
