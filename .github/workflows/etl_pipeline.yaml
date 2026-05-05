@@ -125,7 +125,7 @@ jobs:
             -H "X-ClickHouse-User: $CLICKHOUSE_USER" \
             -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" \
             --data "SELECT 1;" \
-            "http://localhost:8123/" | grep -q "1"; 
+            "http://localhost:$CLICKHOUSE_PORT/" | grep -q "1"; 
             do
               echo "Waiting for ClickHouse";
               sleep 2;
