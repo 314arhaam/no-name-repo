@@ -50,7 +50,29 @@ jobs:
 #      run: |
 #        MYSQL_USR=${{ secrets.MYSQL_USER }}
 #        docker exec -i -e MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }} mysql_server mysql -h 127.0.0.1 -u$MYSQL_USR -e "SELECT 1;"
+    - name: Create .env file for Clickhouse
+      working-directory: ./infra/clickhouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
 
+    - name: Verify .env
+      working-directory: ./infra/clickhouse
+      shell: bash
+      run: ls -l .env
+
+    - name: Clickhouse docker compose
+      shell: bash
+      working-directory: ./infra/clickhouse
+      run: |
+        docker compose up --build -d
+    
+    - name: Verify Clickhouse
+      shell: bash
+      run: |
+        docker ps
+    
     - name: Create .env
       working-directory: ./services/static-ecommerce
       shell: bash
@@ -70,5 +92,29 @@ jobs:
     - name: Run ecommerce
       shell: bash
       working-directory: ./services/static-ecommerce
+      run: |
+        chmod +x ./run.sh && ./run.sh
+    
+    - name: Create .env for ETL
+      working-directory: ./services/etl
+      shell: bash
+      run: |
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+        echo "MYSQL_HOST=mysql_server" >> .env
+        echo "MYSQL_PORT=3306" >> .env
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+    
+    - name: Bulid ETL
+      shell: bash
+      working-directory: ./services/etl
+      run: |
+        chmod +x ./build.sh && ./build.sh
+    
+    - name: Run ETL
+      shell: bash
+      working-directory: ./services/etl
       run: |
         chmod +x ./run.sh && ./run.sh
