@@ -43,7 +43,7 @@ jobs:
     
     - name: Verify MySQL
       shell: bash
-      run: docker ps
+      run: docker ps && sleep 5 && docker ps
     
     - name: Test MySQL CLI in container
       shell: bash
