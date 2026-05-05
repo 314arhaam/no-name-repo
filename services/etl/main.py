@@ -20,10 +20,10 @@ def create_mysql_engine():
 if __name__ == "__main__":
     mysql_engine = create_mysql_engine()
     extract_data = pd.read_sql(
-        f"""SELECT DATE(create_date) as date_, count(distinct order_id) as order_count 
+        f"""SELECT DATE(create_at) as date_, count(distinct order_id) as order_count 
             FROM fact.order 
-            GROUP BY DATE(create_date)
-            ORDER BY DATE(create_date)""", 
+            GROUP BY DATE(create_at)
+            ORDER BY DATE(create_at)""", 
         con=mysql_engine
     )
     print(extract_data)
