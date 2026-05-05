@@ -3,6 +3,7 @@ import src.products
 import src.orders
 import sys, argparse, os
 import sqlalchemy
+import pandas as pd
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
