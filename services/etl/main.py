@@ -26,7 +26,7 @@ if __name__ == "__main__":
             ORDER BY DATE(create_at)""", 
         con=mysql_engine
     )
-    print(extract_data)
+    print(extract_data.head())
     #
     client = clickhouse_connect.get_client(
         host=os.getenv("CLICKHOUSE_HOST"),
