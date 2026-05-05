@@ -2,3 +2,5 @@
 docker-compose*
 Dockerfile*
 *.sh
+data/
+__pycache__/

@@ -3,6 +3,9 @@ puller.sh
 pusher.sh
 *.env
 *-venv
+test.json
+test.csv
+data/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
