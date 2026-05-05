@@ -130,4 +130,4 @@ jobs:
         docker run \
           --network $NETWORK_NAME \
           --env-file .env \
-          $ETL_IMG
+          $ETL_IMG --user 100 --product 50 --order 1000
