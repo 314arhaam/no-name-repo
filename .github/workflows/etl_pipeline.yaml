@@ -44,6 +44,13 @@ jobs:
     - name: Verify MySQL
       shell: bash
       run: docker ps
+    
+    - name: Test socket connection
+      shell: bash
+      run: |
+        MYSQL_USR=${{ secrets.MYSQL_USER }}
+        MYSQL_PWD=${{ secrets.MYSQL_PASSWORD }}
+        docker exec -i mysql_server mysql -u $MYSQL_USR -p $MYSQL_PWD -e "SELECT 1;"
 
     - name: Create .env
       working-directory: ./services/static-ecommerce
