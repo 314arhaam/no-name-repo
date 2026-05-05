@@ -1,9 +1,9 @@
 import sys, argparse, os
 import sqlalchemy
 import pandas as pd
-from db import DB
+from . import db
 
-class MySQL(DB):
+class MySQL(db.DB):
     def __init__(self):
         super().__init__()
         host = os.getenv("MYSQL_HOST", "localhost")

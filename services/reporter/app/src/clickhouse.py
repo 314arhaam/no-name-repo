@@ -1,8 +1,9 @@
 import clickhouse_connect
 import os
 import pandas as pd
+from . import db
 
-class ClickHouse(DB):
+class ClickHouse(db.DB):
     def __init__(self):
         super().__init__()
         client = clickhouse_connect.get_client(
