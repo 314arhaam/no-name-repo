@@ -101,7 +101,7 @@ jobs:
         docker run \
           --network $NETWORK_NAME \
           --env-file .env \
-          $DATA_SOURCE_IMG
+          $DATA_SOURCE_IMG --user 100 --product 50 --order 1000
     
     - name: Create .env for ETL
       working-directory: ./services/etl
@@ -130,4 +130,4 @@ jobs:
         docker run \
           --network $NETWORK_NAME \
           --env-file .env \
-          $ETL_IMG --user 100 --product 50 --order 1000
+          $ETL_IMG
