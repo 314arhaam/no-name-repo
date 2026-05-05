@@ -1,4 +1,3 @@
-
 CREATE DATABASE IF NOT EXISTS dim;
 
 CREATE TABLE IF NOT EXISTS dim.product (
@@ -22,8 +21,11 @@ CREATE DATABASE IF NOT EXISTS fact;
 CREATE TABLE IF NOT EXISTS fact.order (
     id_ INT PRIMARY KEY,
     order_id INT,
-    created_at DATETIME,
+    create_at DATETIME,
     order_status VARCHAR(50),
     user_id INT,
     product_id INT
 );
+
+GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO 'MySQLUser'@'%';
+GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO 'MySQLUser'@'%';
