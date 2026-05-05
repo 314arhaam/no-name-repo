@@ -123,6 +123,19 @@ jobs:
             sleep 2; 
           done;
         '
+        timeout 60s bash -c '
+        until
+          source ./services/etl/.env;
+          curl -s \
+            -H "X-ClickHouse-User: $CLICKHOUSE_USER" \
+            -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" \
+            --data "SELECT 1;" \
+            "http://localhost:8123/" | grep -q "1"; 
+            do
+              echo "Waiting for ClickHouse";
+              sleep 2;
+            done;
+        '
 
     - name: Run ecommerce
       shell: bash
