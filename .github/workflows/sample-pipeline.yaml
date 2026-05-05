@@ -50,12 +50,12 @@ jobs:
     
     - name: Bulid banner data generator
       shell: bash
-      working-directory: ./services/banner-data
+      working-directory: ./utils/banner-data
       run: |
         chmod +x ./build.sh && ./build.sh
     
     - name: Create .env file for Data Generator
-      working-directory: ./services/banner-data
+      working-directory: ./utils/banner-data
       shell: bash
       run: |
         echo "CLICKHOUSE_HOST=clickhouse_server" >> .env
@@ -65,7 +65,7 @@ jobs:
 
     - name: Run banner data generator
       shell: bash
-      working-directory: ./services/banner-data
+      working-directory: ./utils/banner-data
       run: |
         chmod +x ./run.sh && ./run.sh
     
