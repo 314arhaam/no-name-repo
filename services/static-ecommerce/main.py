@@ -80,7 +80,7 @@ if __name__ == "__main__":
                     name=conf[1],
                     schema=conf[0],
                     con=conn,
-                    if_exists="replace",
+                    if_exists="append",
                     index=False,
                     method="multi"
                 )
