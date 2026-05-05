@@ -168,7 +168,7 @@ jobs:
           $REPORTER_IMG --config '
             {
               "driver": "mysql", 
-              "query": "SELECT * FROM fact.order LIMIT 100"
+              "query": "SELECT count(order_id) FROM fact.order"
             }
           '
     - name: Run reporter in clickhouse
