@@ -16,6 +16,7 @@ jobs:
     env:
       DATA_SOURCE_IMG: "ecommerce:latest"
       ETL_IMG: "etl:latest"
+      REPORTER_IMG: "reporter:latest"
       NETWORK_NAME: analytics_network
       MYSQL_HOST: mysql_server
       MYSQL_PORT: 3306
@@ -105,6 +106,12 @@ jobs:
       working-directory: ./services/etl
       run: |
         docker build -t $ETL_IMG .
+    
+    - name: Bulid Reporter
+      shell: bash
+      working-directory: ./services/reporter
+      run: |
+        docker build -t $REPORTER_IMG .
 
     - name: Checking databases
       shell: bash
@@ -149,3 +156,13 @@ jobs:
           --network $NETWORK_NAME \
           --env-file .env \
           $ETL_IMG
+    
+    - name:
+      shell: bash
+      working-directory: ./services/reporter
+      run: | 
+        docker run \
+          --network analytics_network \
+          --env-file .env \
+          --volume ./data/:data/
+          $REPORTER_IMG --config '{"driver": "mysql", "query": "select 10"}'
