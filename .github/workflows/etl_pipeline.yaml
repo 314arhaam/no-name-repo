@@ -164,5 +164,5 @@ jobs:
         docker run \
           --network analytics_network \
           --env-file .env \
-          --volume ./services/reporter/data/:data/ \
+          --volume ./services/reporter/data/:/data \
           $REPORTER_IMG --config '{"driver": "mysql", "query": "select 10"}'
