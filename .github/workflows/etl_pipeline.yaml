@@ -106,6 +106,8 @@ jobs:
         echo "MYSQL_PORT=3306" >> .env
         echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        echo "CLICKHOUSE_HOST=clickhouse_server" >> .env
+        echo "CLICKHOUSE_PORT=8123" >> .env
     
     - name: Bulid ETL
       shell: bash
