@@ -156,7 +156,6 @@ jobs:
       run: | 
         mkdir data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
-        cat config.json | jq
         docker run \
           --network $NETWORK_NAME \
           --env MYSQL_HOST=$MYSQL_HOST \
@@ -177,7 +176,6 @@ jobs:
       run: | 
         mkdir data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
-        cat config.json | jq
         docker run \
           --network $NETWORK_NAME \
           --env CLICKHOUSE_HOST=$CLICKHOUSE_HOST \
