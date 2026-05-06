@@ -105,6 +105,7 @@ jobs:
       shell: bash
       working-directory: ./services/etl
       run: |
+        cp -r ../reporter/app/src/ app/
         docker build -t $ETL_IMG .
     
     - name: Bulid Reporter
