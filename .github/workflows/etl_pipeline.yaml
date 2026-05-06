@@ -100,6 +100,7 @@ jobs:
 
     - name: Checking ClickHouse
       shell: bash
+      run: |
         echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
         echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
