@@ -81,7 +81,7 @@ jobs:
       run: |
         docker build -t $REPORTER_IMG .
 
-    - name: Checking databases
+    - name: Checking MySQL
       shell: bash
       run: |
         echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
@@ -97,6 +97,9 @@ jobs:
             sleep 2; 
           done;
         '
+
+    - name: Checking ClickHouse
+      shell: bash
         echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
         echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
