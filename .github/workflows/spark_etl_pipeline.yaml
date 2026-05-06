@@ -84,9 +84,8 @@ jobs:
     
     - name: Bulid ETL
       shell: bash
-      working-directory: ./services/etl
+      working-directory: ./services/pyspark-etl
       run: |
-        cp -r ../reporter/app/src/ app/
         docker build -t $ETL_IMG .
     
     - name: Bulid Reporter
@@ -157,8 +156,22 @@ jobs:
     
     - name: Run ETL
       shell: bash
-      working-directory: ./services/etl
-      run: ls -lh
+      working-directory: ./services/pyspark-etl
+      run: |
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --env CLICKHOUSE_HOST=$CLICKHOUSE_HOST \
+          --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
+          --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
+          --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
+            spark-submit \ 
+              --master spark://$SPARK_MASTER_HOST:$SPARK_MASTER_PORT\
+              --packages mysql:mysql-connector-java:9.1.0,com.clickhouse:clickhouse-jdbc:0.6.3:all \
+                app/main.py
 
     - name: Run reporter in mysql
       shell: bash
@@ -175,5 +188,23 @@ jobs:
           --env MYSQL_PORT=$MYSQL_PORT \
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --volume ./data/:/reporter/data \
+          $REPORTER_IMG --file data/config.json
+
+    - name: Run reporter in clickhouse
+      shell: bash
+      working-directory: ./services/reporter/
+      env:
+        DB_DRIVER: "clickhouse"
+        QUERY: "SELECT * FROM analytics.daily_order WHERE order_count > 100"
+      run: | 
+        mkdir -p data
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
+        docker run \
+          --network $NETWORK_NAME \
+          --env CLICKHOUSE_HOST=$CLICKHOUSE_HOST \
+          --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
+          --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
+          --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
           --volume ./data/:/reporter/data \
           $REPORTER_IMG --file data/config.json
