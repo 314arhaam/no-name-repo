@@ -154,7 +154,7 @@ jobs:
         DB_DRIVER: "mysql"
         QUERY: "SELECT count(order_id) FROM fact.order"
       run: | 
-        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > config.json
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
         cat config.json | jq
         docker run \
           --network $NETWORK_NAME \
@@ -163,7 +163,7 @@ jobs:
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
           --volume ./data/:/data \
-          $REPORTER_IMG --file config.json
+          $REPORTER_IMG --file data/config.json
 
     - name: Run reporter in clickhouse
       shell: bash
@@ -174,7 +174,7 @@ jobs:
           SELECT * FROM analytics.daily_order
           WHERE order_count > 100
       run: | 
-        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > config.json
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
         cat config.json | jq
         docker run \
           --network $NETWORK_NAME \
@@ -183,4 +183,4 @@ jobs:
           --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
           --volume ./data/:/data \
-          $REPORTER_IMG --file config.json
+          $REPORTER_IMG --file data/config.json
