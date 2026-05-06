@@ -1,0 +1,179 @@
+name: Spark ETL Pipeline
+
+on:
+  workflow_dispatch:
+  #push:
+  #  branches: [ "main" ]
+  #pull_request:
+  #  branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  spark_etl_job:
+    env:
+      DATA_SOURCE_IMG: "ecommerce:latest"
+      ETL_IMG: "etl:latest"
+      REPORTER_IMG: "reporter:latest"
+      NETWORK_NAME: analytics_network
+      MYSQL_HOST: mysql_server
+      MYSQL_PORT: 3306
+      CLICKHOUSE_HOST: clickhouse_server
+      CLICKHOUSE_PORT: 8123
+      SPARK_WORKER_MEMORY: "2G"
+      SPARK_WORKER_CORES: "2"
+    
+    runs-on: ubuntu-22.04
+
+    steps:
+    
+    - uses: actions/checkout@v4
+
+    - name: Create docker network
+      shell: bash
+      run: docker network create --attachable --driver bridge $NETWORK_NAME
+    
+    - name: Verify network
+      shell: bash
+      run: |
+        NET_DATA=$(docker network ls --filter "NAME=$NETWORK_NAME" --format json | jq)
+        if [[ $NET_DATA == "" ]]; then 
+          echo "Network not found"
+          exit 1; 
+        else 
+          echo "$NET_DATA"
+        fi
+
+    - name: Docker compose Spark
+      working-directory: ./infra/spark
+      shell: bash
+      run: |
+        echo SPARK_MASTER_HOST=${{ secrets.SPARK_MASTER_HOST }} >> .env
+        echo SPARK_MASTER_PORT=${{ secrets.SPARK_MASTER_PORT }} >> .env
+        echo SPARK_MASTER_WEBUI_PORT=${{ secrets.SPARK_MASTER_WEBUI_PORT }} >> .env
+        echo SPARK_MASTER_URL=${{ secrets.SPARK_MASTER_URL }} >> .env
+        echo SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY >> .env
+        echo SPARK_WORKER_CORES=$SPARK_WORKER_CORES >> .env
+        docker compose up --build -d
+
+    - name: Docker compose MySQL
+      shell: bash
+      working-directory: ./infra/mysql
+      run: |
+        echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+        docker compose up --build -d
+    
+    - name: Docker compose Clickhouse
+      working-directory: ./infra/clickhouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        docker compose up --build -d
+    
+    - name: Bulid source data generator
+      shell: bash
+      working-directory: ./utils/static-ecommerce
+      run: |
+        docker build -t $DATA_SOURCE_IMG .
+    
+    - name: Bulid ETL
+      shell: bash
+      working-directory: ./services/etl
+      run: |
+        cp -r ../reporter/app/src/ app/
+        docker build -t $ETL_IMG .
+    
+    - name: Bulid Reporter
+      shell: bash
+      working-directory: ./services/reporter
+      run: |
+        docker build -t $REPORTER_IMG .
+
+    - name: Checking MySQL
+      shell: bash
+      run: |
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+        echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+        timeout 60s bash -c '
+        until 
+          source .env;
+          sudo docker exec -i -e MYSQL_PWD=$MYSQL_PASSWORD $MYSQL_HOST mysql -u$MYSQL_USER -e"SELECT 1;" --silent; 
+          do 
+            echo "Waiting for MySQL"; 
+            sleep 2; 
+          done;
+        '
+
+    - name: Checking ClickHouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
+        echo "CLICKHOUSE_PORT=$CLICKHOUSE_PORT" >> .env
+        timeout 60s bash -c '
+        until
+          source .env;
+          curl -s \
+            -H "X-ClickHouse-User: $CLICKHOUSE_USER" \
+            -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" \
+            --data "SELECT 1;" \
+            "http://localhost:$CLICKHOUSE_PORT/" | grep -q "1"; 
+            do
+              echo "Waiting for ClickHouse";
+              sleep 2;
+            done;
+        '
+
+    - name: Grant permission on MySQL table to app user
+      shell: bash
+      run: |
+        echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+        echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+        source .env;
+        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_HOST mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
+        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_HOST mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
+
+    - name: Run source data generator
+      shell: bash
+      working-directory: ./utils/static-ecommerce
+      run: |
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
+    
+    - name: Run ETL
+      shell: bash
+      working-directory: ./services/etl
+      run: ls -lh
+
+    - name: Run reporter in mysql
+      shell: bash
+      working-directory: ./services/reporter/
+      env:
+        DB_DRIVER: "mysql"
+        QUERY: "SELECT count(order_id) FROM fact.order"
+      run: | 
+        mkdir -p data
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --volume ./data/:/reporter/data \
+          $REPORTER_IMG --file data/config.json
