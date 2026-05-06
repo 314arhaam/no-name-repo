@@ -153,16 +153,24 @@ jobs:
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
           $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
+
+    - name: ls -R
+      shell: bash
+      working-directory: ./services/pyspark-etl
+      run: ls -R
     
+    - name: ls -R app
+      shell: bash
+      working-directory: ./services/pyspark-etl
+      run: ls -R app/
+
     - name: Run ETL
       shell: bash
-      env:
-        HOME: /tmp
       working-directory: ./services/pyspark-etl
       run: |
         docker run \
           --network $NETWORK_NAME \
-          --env HOME=$HOME \
+          --env HOME=/tmp \
           --env MYSQL_HOST=$MYSQL_HOST \
           --env MYSQL_PORT=$MYSQL_PORT \
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
