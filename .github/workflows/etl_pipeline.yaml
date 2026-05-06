@@ -170,8 +170,7 @@ jobs:
       working-directory: ./services/reporter/
       env:
         DB_DRIVER: "clickhouse"
-        QUERY: |
-          SELECT * FROM analytics.daily_order WHERE order_count > 100
+        QUERY: "SELECT * FROM analytics.daily_order WHERE order_count > 100"
       run: | 
         mkdir -p data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
