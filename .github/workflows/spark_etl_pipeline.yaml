@@ -162,6 +162,7 @@ jobs:
       run: |
         docker run \
           --network $NETWORK_NAME \
+          --env HOME=$HOME \
           --env MYSQL_HOST=$MYSQL_HOST \
           --env MYSQL_PORT=$MYSQL_PORT \
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
