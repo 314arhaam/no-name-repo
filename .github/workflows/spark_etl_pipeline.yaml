@@ -169,8 +169,8 @@ jobs:
           --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
             $ETL_IMG \ 
-              --master spark://$SPARK_MASTER_HOST:$SPARK_MASTER_PORT\
-              --packages mysql:mysql-connector-java:9.1.0,com.clickhouse:clickhouse-jdbc:0.6.3:all \
+              --master spark://$SPARK_MASTER_HOST:$SPARK_MASTER_PORT \
+              --jars app/jar/mysql.jar,app/jar/clickhouse.jar
                 app/main.py
 
     - name: Run reporter in mysql
