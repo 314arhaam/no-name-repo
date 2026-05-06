@@ -1,0 +1,41 @@
+services:
+  spark-master:
+    image: bitnami/spark:latest
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+    env_file:
+      - .env
+    ports:
+      - "7077:7077"   # Spark master port
+      - "8080:8080"   # Spark Web UI
+    networks:
+      - analytics_network
+
+  spark-worker-1:
+    image: bitnami/spark:latest
+    container_name: spark-worker-1
+    environment:
+      - SPARK_MODE=worker
+    env_file:
+      - .env
+    depends_on:
+      - spark-master
+    networks:
+      - analytics_network
+
+  spark-worker-2:
+    image: bitnami/spark:latest
+    container_name: spark-worker-2
+    environment:
+      - SPARK_MODE=worker
+    env_file:
+      - .env
+    depends_on:
+      - spark-master
+    networks:
+      - analytics_network
+
+networks:
+  analytics_network:
+    external: true
