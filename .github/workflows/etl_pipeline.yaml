@@ -72,7 +72,7 @@ jobs:
         docker compose up --build -d
     
     - name: Create .env file for source data generator
-      working-directory: ./services/static-ecommerce
+      working-directory: ./utils/static-ecommerce
       shell: bash
       run: |
         echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
@@ -97,7 +97,7 @@ jobs:
     
     - name: Bulid source data generator
       shell: bash
-      working-directory: ./services/static-ecommerce
+      working-directory: ./utils/static-ecommerce
       run: |
         docker build -t $DATA_SOURCE_IMG .
     
@@ -141,7 +141,7 @@ jobs:
 
     - name: Run source data generator
       shell: bash
-      working-directory: ./services/static-ecommerce
+      working-directory: ./utils/static-ecommerce
       run: |
         docker run \
           --network $NETWORK_NAME \
