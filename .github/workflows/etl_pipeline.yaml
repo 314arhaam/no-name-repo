@@ -154,7 +154,7 @@ jobs:
         DB_DRIVER: "mysql"
         QUERY: "SELECT count(order_id) FROM fact.order"
       run: | 
-        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}}"' > config.json
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > config.json
         cat config.json | jq
         docker run \
           --network $NETWORK_NAME \
@@ -174,7 +174,7 @@ jobs:
           SELECT * FROM analytics.daily_order
           WHERE order_count > 100
       run: | 
-        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}}"' > config.json
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > config.json
         cat config.json | jq
         docker run \
           --network $NETWORK_NAME \
