@@ -162,7 +162,7 @@ jobs:
           --env MYSQL_PORT=$MYSQL_PORT \
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-          --volume ./data/:/etl/data \
+          --volume ./data/:/reporter/data \
           $REPORTER_IMG --file data/config.json
 
     - name: Run reporter in clickhouse
@@ -182,5 +182,5 @@ jobs:
           --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
           --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
-          --volume ./data/:/etl/data \
+          --volume ./data/:/reporter/data \
           $REPORTER_IMG --file data/config.json
