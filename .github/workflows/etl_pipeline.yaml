@@ -119,6 +119,15 @@ jobs:
             done;
         '
 
+    - name: Grant permission on MySQL table to app user
+      shell: bash
+      run: |
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+        echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_HOST mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
+        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_HOST mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
+
     - name: Run source data generator
       shell: bash
       working-directory: ./utils/static-ecommerce

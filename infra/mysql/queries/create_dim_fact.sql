@@ -26,6 +26,3 @@ CREATE TABLE IF NOT EXISTS fact.order (
     user_id INT,
     product_id INT
 );
-
-GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO 'MySQLUser'@'%';
-GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO 'MySQLUser'@'%';
