@@ -19,6 +19,13 @@ class ClickHouse(db.DB):
     
     def ping(self):
         return all(self.query_df() == pd.DataFrame({"test_col": 1}))
+    
+    def insert_df(self, dest_table: str, data: pd.DataFrame):
+        if len(dest_table.split('.')) != 2:
+            raise ValueError("`dest_table` must be [SCHEMA].[TABLE NAME] format.")
+        else:
+            schema, table = dest_table.split(".")
+        self.client.insert_df(dest_table, data)
 
 if __name__ == '__main__':
     ch = ClickHouse()
