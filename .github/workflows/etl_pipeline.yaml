@@ -154,6 +154,7 @@ jobs:
         DB_DRIVER: "mysql"
         QUERY: "SELECT count(order_id) FROM fact.order"
       run: | 
+        mkdir data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
         cat config.json | jq
         docker run \
@@ -174,6 +175,7 @@ jobs:
           SELECT * FROM analytics.daily_order
           WHERE order_count > 100
       run: | 
+        mkdir data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
         cat config.json | jq
         docker run \
