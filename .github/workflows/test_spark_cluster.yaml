@@ -42,12 +42,12 @@ jobs:
       working-directory: ./infra/spark
       shell: bash
       run: |
-        echo $SPARK_MASTER_HOST=${{ secrets.SPARK_MASTER_HOST }} >> .env
-        echo $SPARK_MASTER_PORT=${{ secrets.SPARK_MASTER_PORT }} >> .env
-        echo $SPARK_MASTER_WEBUI_PORT=${{ secrets.SPARK_MASTER_WEBUI_PORT }} >> .env
-        echo $SPARK_MASTER_URL=${{ secrets.SPARK_MASTER_URL }} >> .env
-        echo $SPARK_WORKER_MEMORY >> .env
-        echo $SPARK_WORKER_CORES >> .env
+        echo SPARK_MASTER_HOST=${{ secrets.SPARK_MASTER_HOST }} >> .env
+        echo SPARK_MASTER_PORT=${{ secrets.SPARK_MASTER_PORT }} >> .env
+        echo SPARK_MASTER_WEBUI_PORT=${{ secrets.SPARK_MASTER_WEBUI_PORT }} >> .env
+        echo SPARK_MASTER_URL=${{ secrets.SPARK_MASTER_URL }} >> .env
+        echo SPARK_WORKER_MEMORY=$SPARK_WORKER_MEMORY >> .env
+        echo SPARK_WORKER_CORES=$SPARK_WORKER_CORES >> .env
     
     - name: Build and run Spark cluster
       working-directory: ./infra/spark
