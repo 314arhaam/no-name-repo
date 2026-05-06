@@ -143,7 +143,7 @@ jobs:
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
           $ETL_IMG
 
-    - name: Run reporter in clickhouse
+    - name: Run reporter in mysql
       shell: bash
       working-directory: ./services/etl/
       env:
