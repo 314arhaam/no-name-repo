@@ -23,4 +23,3 @@ if __name__ == "__main__":
         "analytics.daily_order",
         extract_data
     )
-    verify_df = ch.query_df("select * from analytics.daily_order")
