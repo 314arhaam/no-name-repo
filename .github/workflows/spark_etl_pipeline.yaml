@@ -170,7 +170,8 @@ jobs:
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
             $ETL_IMG \ 
               --master spark://$SPARK_MASTER_HOST:$SPARK_MASTER_PORT \
-              --jars app/jar/mysql.jar,app/jar/clickhouse.jar
+              --conf spark.jars.ivy=/tmp/.ivy2
+              --jars app/jar/mysql.jar,app/jar/clickhouse.jar \
                 app/main.py
 
     - name: Run reporter in mysql
