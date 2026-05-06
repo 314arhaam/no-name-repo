@@ -125,6 +125,7 @@ jobs:
         echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
         echo "MYSQL_HOST=$MYSQL_HOST" >> .env
         echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+        source .env;
         docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_HOST mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
         docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_HOST mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
 
