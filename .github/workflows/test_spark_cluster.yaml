@@ -1,0 +1,60 @@
+name: Test Spark Build and Run
+
+on:
+  workflow_dispatch:
+  #push:
+  #  branches: [ "main" ]
+  #pull_request:
+  #  branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test_job:
+    env:
+      NETWORK_NAME: "analytics_network"
+      SPARK_WORKER_MEMORY: "2G"
+      SPARK_WORKER_CORES: "2"
+
+    runs-on: ubuntu-22.04
+    steps:
+    
+    - uses: actions/checkout@v4
+
+    - name: Create docker network
+      shell: bash
+      run: docker network create --attachable --driver bridge $NETWORK_NAME
+    
+    - name: Verify network
+      shell: bash
+      run: |
+        NET_DATA=$(docker network ls --filter "NAME=$NETWORK_NAME" --format json | jq)
+        if [[ $NET_DATA == "" ]]; then 
+          echo "Network not found"
+          exit 1; 
+        else 
+          echo "$NET_DATA"
+        fi
+
+    - name: Create .env for Spark
+      working-directory: ./infra/spark
+      shell: bash
+      run: |
+        echo $SPARK_MASTER_HOST=${{ secrets.SPARK_MASTER_HOST }} >> .env
+        echo $SPARK_MASTER_PORT=${{ secrets.SPARK_MASTER_PORT }} >> .env
+        echo $SPARK_MASTER_WEBUI_PORT=${{ secrets.SPARK_MASTER_WEBUI_PORT }} >> .env
+        echo $SPARK_MASTER_URL=${{ secrets.SPARK_MASTER_URL }} >> .env
+        echo $SPARK_WORKER_MEMORY >> .env
+        echo $SPARK_WORKER_CORES >> .env
+    
+    - name: Build and run Spark cluster
+      working-directory: ./infra/spark
+      shell: bash
+      run: |
+        docker compose up --build -d
+        
+    - name: Verify Spark cluster
+      shell: bash
+      run: docker ps
