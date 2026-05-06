@@ -44,7 +44,7 @@ jobs:
           echo "$NET_DATA"
         fi
     
-    - name: Create .env file for MySQL
+    - name: Docker compose MySQL
       shell: bash
       working-directory: ./infra/mysql
       run: |
@@ -52,11 +52,7 @@ jobs:
         echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
         echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
         echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
-    
-    - name: Setup MySQL
-      shell: bash
-      working-directory: ./infra/mysql
-      run: docker compose up --build -d
+        docker compose up --build -d
     
     - name: Create .env file for Clickhouse
       working-directory: ./infra/clickhouse
@@ -64,11 +60,6 @@ jobs:
       run: |
         echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
-
-    - name: Clickhouse docker compose
-      shell: bash
-      working-directory: ./infra/clickhouse
-      run: |
         docker compose up --build -d
     
     - name: Bulid source data generator
