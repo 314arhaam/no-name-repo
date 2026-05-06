@@ -71,6 +71,30 @@ jobs:
       run: |
         docker compose up --build -d
     
+    - name: Create .env file for source data generator
+      working-directory: ./utils/static-ecommerce
+      shell: bash
+      run: |
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+        echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+    
+    - name: Create .env file for ETL
+      working-directory: ./services/etl
+      shell: bash
+      run: |
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+        echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
+        echo "CLICKHOUSE_PORT=$CLICKHOUSE_PORT" >> .env
+    
     - name: Bulid source data generator
       shell: bash
       working-directory: ./utils/static-ecommerce
@@ -122,10 +146,7 @@ jobs:
       run: |
         docker run \
           --network $NETWORK_NAME \
-          --env MYSQL_HOST=$MYSQL_HOST \
-          --env MYSQL_PORT=$MYSQL_PORT \
-          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
-          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --env-file .env \
           $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
     
     - name: Run ETL
@@ -134,52 +155,34 @@ jobs:
       run: |
         docker run \
           --network $NETWORK_NAME \
-          --env MYSQL_HOST=$MYSQL_HOST \
-          --env MYSQL_PORT=$MYSQL_PORT \
-          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
-          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-          --env CLICKHOUSE_HOST=$CLICKHOUSE_HOST \
-          --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
-          --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
-          --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
+          --env-file .env \
           $ETL_IMG
-
+    
+    - name: Run reporter in mysql
+      shell: bash
+      run: | 
+        cp ./services/etl/.env .
+        docker run \
+          --network analytics_network \
+          --env-file .env \
+          --volume ./services/reporter/data/:/data \
+          $REPORTER_IMG --config '
+            {
+              "driver": "mysql", 
+              "query": "SELECT count(order_id) FROM fact.order"
+            }
+          '
     - name: Run reporter in clickhouse
       shell: bash
-      working-directory: ./services/etl/
-      env:
-        DB_DRIVER: "mysql"
-        QUERY: "SELECT count(order_id) FROM fact.order"
       run: | 
+        cp ./services/etl/.env .
         docker run \
-          --network $NETWORK_NAME \
-          --env MYSQL_HOST=$MYSQL_HOST \
-          --env MYSQL_PORT=$MYSQL_PORT \
-          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
-          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-          --volume ./data/:/data \
-          $REPORTER_IMG --config '{
-              "driver": $DB_DRIVER, 
-              "query": $QUERY
-            }'
-
-    - name: Run reporter in clickhouse
-      shell: bash
-      working-directory: ./services/etl/
-      env:
-        DB_DRIVER: "clickhouse"
-        QUERY: |
-          SELECT * FROM analytics.daily_order
-          WHERE order_count > 100
-      run: | 
-        docker run \
-          --network $NETWORK_NAME \
-          --env CLICKHOUSE_HOST=$CLICKHOUSE_HOST \
-          --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
-          --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
-          --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
-          --volume ./data/:/data \
-          $REPORTER_IMG --config '{
-              "driver": $DB_DRIVER, 
-              "query": $QUERY
-            }'
+          --network analytics_network \
+          --env-file .env \
+          --volume ./services/reporter/data/:/data \
+          $REPORTER_IMG --config '
+            {
+              "driver": "clickhouse", 
+              "query": "SELECT * FROM analytics.daily_order LIMIT 100"
+            }
+          '
