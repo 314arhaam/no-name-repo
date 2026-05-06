@@ -149,12 +149,11 @@ jobs:
 
     - name: Run reporter in mysql
       shell: bash
-      working-directory: ./services/etl/
+      working-directory: ./services/reporter/
       env:
         DB_DRIVER: "mysql"
         QUERY: "SELECT count(order_id) FROM fact.order"
       run: | 
-        mkdir data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
         docker run \
           --network $NETWORK_NAME \
@@ -167,14 +166,13 @@ jobs:
 
     - name: Run reporter in clickhouse
       shell: bash
-      working-directory: ./services/etl/
+      working-directory: ./services/reporter/
       env:
         DB_DRIVER: "clickhouse"
         QUERY: |
           SELECT * FROM analytics.daily_order
           WHERE order_count > 100
       run: | 
-        mkdir data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
         docker run \
           --network $NETWORK_NAME \
