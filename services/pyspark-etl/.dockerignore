@@ -1,6 +1,6 @@
 *.env
 docker-compose*
-Dockerfile*
+Dockerfile
 *.sh
 data/
 __pycache__/
