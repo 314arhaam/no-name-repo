@@ -36,15 +36,14 @@ sink_db = "analytics"
 sink_table = "daily_order"
 
 transformed_df.write \
-    .format("clickhouse") \
+    .format("jdbc") \
     .mode("append") \
-    .option("clickhouse.host", f"clickhouse_server") \
-    .option("clickhouse.port", f"{os.getenv('CLICKHOUSE_PORT')}") \
-    .option("clickhouse.database", f"{sink_db}") \
-    .option("clickhouse.table", f"{sink_table}") \
-    .option("clickhouse.user", f"{os.getenv('CLICKHOUSE_USER')}") \
-    .option("clickhouse.password", f"{os.getenv('CLICKHOUSE_PASSWORD')}") \
-    .option("clickhouse.write.batch_size", "100000") \
+    .option("url", f"jdbc:clickhouse://clickhouse_server:{os.getenv('CLICKHOUSE_PORT')}/{sink_db}") \
+    .option("driver", "com.clickhouse.jdbc.ClickHouseDriver") \
+    .option("dbtable", f"{sink_db}.{sink_table}") \
+    .option("user", f"{os.getenv('CLICKHOUSE_USER')}") \
+    .option("password", f"{os.getenv('CLICKHOUSE_PASSWORD')}") \
+    .option("batchsize", 100000) \
     .save()
 
 print("[*] Data written to ClickHouse successfully")
