@@ -152,7 +152,7 @@ jobs:
           --env MYSQL_PORT=$MYSQL_PORT \
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-          $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
+          $DATA_SOURCE_IMG --user 2 --product 3 --order 10
     
     - name: test
       shell: bash
