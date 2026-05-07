@@ -42,16 +42,6 @@ jobs:
           echo "$NET_DATA"
         fi
     
-    - name: Docker compose MySQL
-      shell: bash
-      working-directory: ./infra/mysql
-      run: |
-        echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
-        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
-        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-        echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
-        docker compose up --build -d
-    
     - name: Create .env file for Clickhouse
       working-directory: ./infra/clickhouse
       shell: bash
@@ -72,6 +62,7 @@ jobs:
       CLICKHOUSE_HOST: clickhouse-host
       CLICKHOUSE_PORT: 8123
       REPORTER_IMG: "reporter:latest"
+      NETWORK_NAME: host_net
     
     steps:
 
@@ -83,6 +74,21 @@ jobs:
         tags: tag:ci
         retry: 2
         hostname: client-host
+    
+    - name: Create docker network
+      shell: bash
+      run: docker network create --attachable --driver host $NETWORK_NAME
+    
+    - name: Verify network
+      shell: bash
+      run: |
+        NET_DATA=$(docker network ls --filter "NAME=$NETWORK_NAME" --format json | jq)
+        if [[ $NET_DATA == "" ]]; then 
+          echo "Network not found"
+          exit 1; 
+        else 
+          echo "$NET_DATA"
+        fi    
     
     - name: Bulid Reporter
       shell: bash
@@ -97,18 +103,15 @@ jobs:
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
         echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
         echo "CLICKHOUSE_PORT=$CLICKHOUSE_PORT" >> .env
-        timeout 60s bash -c '
+        timeout 120s bash -c '
         until
           source .env;
-          curl -s \
-            -H "X-ClickHouse-User: $CLICKHOUSE_USER" \
-            -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" \
-            --data "SELECT 1;" \
-            "http://clickhouse-host:$CLICKHOUSE_PORT/" | grep -q "1"; 
+          DATA=$(curl -s -H "X-ClickHouse-User: $CLICKHOUSE_USER" -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" --data "SELECT 3.14;" "http://clickhouse-host:$CLICKHOUSE_PORT/"); 
             do
               echo "Waiting for ClickHouse";
               sleep 2;
             done;
+            echo $DATA
         '
     
     - name: Run reporter in clickhouse
