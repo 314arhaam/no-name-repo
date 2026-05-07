@@ -43,7 +43,7 @@ transformed_df.write \
     .option("dbtable", f"{sink_db}.{sink_table}") \
     .option("user", f"{os.getenv('CLICKHOUSE_USER')}") \
     .option("password", f"{os.getenv('CLICKHOUSE_PASSWORD')}") \
-    .option("batchsize", 100000) \
+    .option("batchsize", '1000') \
     .save()
 
 print("[*] Data written to ClickHouse successfully")
