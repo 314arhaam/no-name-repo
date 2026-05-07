@@ -1,9 +1,9 @@
 FROM bitnamilegacy/spark:3.5
 
-WORKDIR /app
+WORKDIR /pyspark-etl-job
 
 COPY . .
 
 RUN pip install --no-cache-dir -r requirements.txt 
 
-ENTRYPOINT ["spark-submit"]
+# ENTRYPOINT ["spark-submit"]
