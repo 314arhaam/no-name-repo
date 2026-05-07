@@ -38,9 +38,9 @@ sink_table = "daily_order"
 transformed_df.write \
     .format("jdbc") \
     .mode("append") \
-    .option("url", f"jdbc:ch://clickhouse_server:{os.getenv('CLICKHOUSE_PORT')}/{sink_db}") \
+    .option("url", f"jdbc:ch://clickhouse_server/{sink_db}") \
     .option("driver", "com.clickhouse.jdbc.ClickHouseDriver") \
-    .option("dbtable", f"{sink_table}") \
+    .option("dbtable", f"{sink_db}.{sink_table}") \
     .option("user", f"{os.getenv('CLICKHOUSE_USER')}") \
     .option("password", f"{os.getenv('CLICKHOUSE_PASSWORD')}") \
     .option("batchsize", 100000) \
