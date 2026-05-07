@@ -8,9 +8,11 @@ CREATE TABLE IF NOT EXISTS banner_view (
 ENGINE = MergeTree()
 ORDER BY event_time;
 
-CREATE DATABASE analytics;
+CREATE DATABASE IF NOT EXISTS analytics;
+CREATE DATABASE IF NOT EXISTS analytics_stg;
+
 USE analytics;
-CREATE TABLE IF NOT EXISTS daily_order_Test (
+CREATE TABLE IF NOT EXISTS daily_order (
     date_ Date,
     order_count UInt64
 )
