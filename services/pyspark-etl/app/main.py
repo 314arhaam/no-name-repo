@@ -13,7 +13,7 @@ mysql_df = spark.read \
     .format("jdbc") \
     .option("url", f"jdbc:mysql://{os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT')}/{source_db}") \
     .option("driver", "com.mysql.cj.jdbc.Driver") \
-    .option("dbtable", source_table) \
+    .option("dbtable", f"{source_db}.{source_table}") \
     .option("user", f"{os.getenv('MYSQL_USER')}") \
     .option("password", f"{os.getenv('MYSQL_PASSWORD')}") \
     .load()
@@ -35,7 +35,7 @@ transformed_df.write \
     .mode("append") \
     .option("url", f"jdbc:ch://{os.getenv('CLICKHOUSE_HOST')}:{os.getenv('CLICKHOUSE_PORT')}/{sink_db}") \
     .option("driver", "com.clickhouse.jdbc.ClickHouseDriver") \
-    .option("dbtable", sink_table) \
+    .option("dbtable", f"{sink_db}.{sink_table}") \
     .option("user", f"{os.getenv('CLICKHOUSE_USER')}") \
     .option("password", f"{os.getenv('CLICKHOUSE_PASSWORD')}") \
     .option("batchsize", 100000) \
