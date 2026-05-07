@@ -75,21 +75,6 @@ jobs:
         retry: 2
         hostname: client-host
     
-    - name: Create docker network
-      shell: bash
-      run: docker network create --attachable --driver host $NETWORK_NAME
-    
-    - name: Verify network
-      shell: bash
-      run: |
-        NET_DATA=$(docker network ls --filter "NAME=$NETWORK_NAME" --format json | jq)
-        if [[ $NET_DATA == "" ]]; then 
-          echo "Network not found"
-          exit 1; 
-        else 
-          echo "$NET_DATA"
-        fi    
-    
     - name: Bulid Reporter
       shell: bash
       working-directory: ./services/reporter
@@ -124,7 +109,7 @@ jobs:
         mkdir -p data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
         docker run \
-          --network $NETWORK_NAME \
+          --network host \
           --env CLICKHOUSE_HOST=$CLICKHOUSE_HOST \
           --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
           --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
