@@ -153,17 +153,7 @@ jobs:
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
           $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
-
-    - name: ls -R
-      shell: bash
-      working-directory: ./services/pyspark-etl
-      run: ls -R
     
-    - name: ls -R app
-      shell: bash
-      working-directory: ./services/pyspark-etl
-      run: ls -R app/
-
     - name: Run ETL
       shell: bash
       working-directory: ./services/pyspark-etl
@@ -181,7 +171,7 @@ jobs:
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
             $ETL_IMG \ 
               --master spark://$SPARK_MASTER_HOST:$SPARK_MASTER_PORT \
-              --jars app/jar/mysql.jar,app/jar/clickhouse.jar \
+              --packages mysql:mysql-connector-java:9.1.0,com.clickhouse:clickhouse-jdbc:0.6.3:all \
                 app/main.py
 
     - name: Run reporter in mysql
