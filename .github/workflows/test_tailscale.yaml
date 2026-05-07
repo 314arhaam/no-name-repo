@@ -1,0 +1,16 @@
+name: Test TailScale
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test_tailscale:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Test
+        shell: bash
+        run: echo 1
