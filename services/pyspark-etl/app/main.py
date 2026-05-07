@@ -8,7 +8,7 @@ spark = SparkSession.builder \
 source_db = "fact"
 source_table = "order"
 
-mysql_df = spark.read \ 
+mysql_df = spark.read \
     .format("jdbc") \
     .option("url", f"jdbc:mysql://{os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT')}/{source_db}") \
     .option("driver", "com.mysql.cj.jdbc.Driver") \
