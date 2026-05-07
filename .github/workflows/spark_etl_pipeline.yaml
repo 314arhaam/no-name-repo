@@ -174,9 +174,11 @@ jobs:
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
             $ETL_IMG spark-submit --master spark://${{ secrets.SPARK_MASTER_HOST }}:${{ secrets.SPARK_MASTER_PORT }} \
               --packages com.mysql:mysql-connector-j:9.1.0,com.clickhouse:clickhouse-jdbc:0.6.3 \
-              --conf spark.driver.extraJavaOptions="-XX:MaxJavaStackTraceDepth=100000000" \
-              --conf spark.executor.extraJavaOptions="-XX:MaxJavaStackTraceDepth=100000000" \
                 app/main.py
+
+    - name: test
+      shell: bash
+      run: docker logs clickhouse-server
 
     - name: Run reporter in mysql
       shell: bash
