@@ -39,6 +39,7 @@ try:
         .option("user", f"{os.getenv('CLICKHOUSE_USER')}") \
         .option("password", f"{os.getenv('CLICKHOUSE_PASSWORD')}") \
         .option("batchsize", '1000') \
+        .option("createTableOptions", "ENGINE = MergeTree() ORDER BY date_") \
         .save()
     print("[*] Data written to ClickHouse successfully")
     spark.stop()
