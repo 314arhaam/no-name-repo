@@ -14,3 +14,9 @@ jobs:
       - name: Test
         shell: bash
         run: echo 1
+      - uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets. }}
+          oauth-secret: ${{ secret }}
+          tags: tag:ci
+          hostname: test-host
