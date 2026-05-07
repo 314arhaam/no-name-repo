@@ -33,7 +33,7 @@ try:
     transformed_df.write \
         .format("jdbc") \
         .mode("overwrite") \
-        .option("url", f"jdbc:ch://clickhouse-server/{sink_db}") \
+        .option("url", f"jdbc:ch://{os.getenv('CLICKHOUSE_HOST')}/{sink_db}") \
         .option("driver", "com.clickhouse.jdbc.ClickHouseDriver") \
         .option("dbtable", f"{sink_db}.{sink_table}") \
         .option("user", f"{os.getenv('CLICKHOUSE_USER')}") \
