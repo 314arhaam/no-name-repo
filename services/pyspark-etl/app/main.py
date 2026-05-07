@@ -23,7 +23,7 @@ mysql_df.printSchema()
 mysql_df.show(5)
 
 transformed_df = mysql_df \
-    .withColumn("date_", F.to_date("create_at"))
+    .withColumn("date_", F.to_date("create_at")) \
     .groupBy("date_") \
     .agg(F.countDistinct("order_id").alias("order_count")) \
     .select("date_", "order_count")
