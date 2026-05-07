@@ -41,6 +41,7 @@ transformed_df.write \
     .option("url", f"jdbc:clickhouse:http://clickhouse_server:{os.getenv('CLICKHOUSE_PORT')}/{sink_db}") \
     .option("driver", "com.clickhouse.jdbc.ClickHouseDriver") \
     .option("dbtable", f"{sink_table}") \
+    .option("http_connection_provider", "HHTP_URL_CONNECTION") \
     .option("user", f"{os.getenv('CLICKHOUSE_USER')}") \
     .option("password", f"{os.getenv('CLICKHOUSE_PASSWORD')}") \
     .option("batchsize", 100000) \
