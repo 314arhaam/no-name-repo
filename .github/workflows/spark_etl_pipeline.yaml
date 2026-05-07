@@ -162,7 +162,6 @@ jobs:
       shell: bash
       working-directory: ./services/pyspark-etl
       run: |
-        source .env
         docker run \
           --network $NETWORK_NAME \
           --env MYSQL_HOST=$MYSQL_HOST \
