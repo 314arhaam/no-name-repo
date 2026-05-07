@@ -10,13 +10,97 @@ concurrency:
 jobs:
   test_tailscale:
     runs-on: ubuntu-22.04
+    env:
+      NETWORK_NAME: analytics_network
+      CLICKHOUSE_HOST: clickhouse-server
+      CLICKHOUSE_PORT: 8123
+    
+    runs-on: ubuntu-22.04
+
     steps:
-      - name: Test
-        shell: bash
-        run: echo 1
-      - uses: tailscale/github-action@v3
-        with:
-          authkey: ${{ secrets.TS_AUTH_KEY }}
-          tags: tag:ci
-          retry: 2
-          hostname: test-host
+    
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 2
+        hostname: clickhouse-host
+
+    - name: Create docker network
+      shell: bash
+      run: docker network create --attachable --driver bridge $NETWORK_NAME
+    
+    - name: Verify network
+      shell: bash
+      run: |
+        NET_DATA=$(docker network ls --filter "NAME=$NETWORK_NAME" --format json | jq)
+        if [[ $NET_DATA == "" ]]; then 
+          echo "Network not found"
+          exit 1; 
+        else 
+          echo "$NET_DATA"
+        fi
+    
+    - name: Docker compose MySQL
+      shell: bash
+      working-directory: ./infra/mysql
+      run: |
+        echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+        docker compose up --build -d
+    
+    - name: Create .env file for Clickhouse
+      working-directory: ./infra/clickhouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        docker compose up --build -d
+    
+    - name: Wait
+      shell: bash
+      run: sleep 60
+  
+  check_clickhouse:
+    
+    runs-on: ubuntu-22.04
+    
+    env:
+      CLICKHOUSE_HOST: clickhouse-server
+      CLICKHOUSE_PORT: 8123
+    
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 2
+        hostname: client-host
+
+    - name: Checking ClickHouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
+        echo "CLICKHOUSE_PORT=$CLICKHOUSE_PORT" >> .env
+        timeout 60s bash -c '
+        until
+          source .env;
+          curl -s \
+            -H "X-ClickHouse-User: $CLICKHOUSE_USER" \
+            -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" \
+            --data "SELECT 1;" \
+            "http://clickhouse-host:$CLICKHOUSE_PORT/" | grep -q "1"; 
+            do
+              echo "Waiting for ClickHouse";
+              sleep 2;
+            done;
+        '
