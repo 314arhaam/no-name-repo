@@ -10,7 +10,7 @@ ORDER BY event_time;
 
 CREATE DATABASE analytics;
 USE analytics;
-CREATE TABLE IF NOT EXISTS daily_order (
+CREATE TABLE IF NOT EXISTS daily_order_Test (
     date_ Date,
     order_count UInt64
 )
