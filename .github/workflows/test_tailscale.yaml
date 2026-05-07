@@ -13,7 +13,7 @@ jobs:
     
     env:
       NETWORK_NAME: analytics_network
-      CLICKHOUSE_HOST: clickhouse-server
+      CLICKHOUSE_HOST: clickhouse-host
       CLICKHOUSE_PORT: 8123
 
     steps:
@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-22.04
     
     env:
-      CLICKHOUSE_HOST: clickhouse-server
+      CLICKHOUSE_HOST: clickhouse-host
       CLICKHOUSE_PORT: 8123
       REPORTER_IMG: "reporter:latest"
     
