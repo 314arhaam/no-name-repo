@@ -5,6 +5,8 @@ pusher.sh
 *-venv
 test.json
 test.csv
+test.py
+test.sh
 data/
 # Byte-compiled / optimized / DLL files
 __pycache__/
