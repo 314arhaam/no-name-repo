@@ -3,7 +3,6 @@ from pyspark.sql import functions as F
 
 spark = SparkSession.builder \
     .appName("MySQL_to_ClickHouse_ETL") \
-    # .config("spark.jars", "mysql-connector-j-8.3.0.jar,clickhouse-jdbc-0.6.3.jar") \
     .getOrCreate()
 
 source_db = "fact"

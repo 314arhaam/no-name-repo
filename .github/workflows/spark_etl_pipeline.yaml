@@ -164,7 +164,6 @@ jobs:
       run: |
         docker run \
           --network $NETWORK_NAME \
-          --env HOME=/tmp \
           --env MYSQL_HOST=$MYSQL_HOST \
           --env MYSQL_PORT=$MYSQL_PORT \
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
@@ -173,11 +172,9 @@ jobs:
           --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
           --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
-            $ETL_IMG spark-submit \ 
-              --master spark://$SPARK_MASTER_HOST:$SPARK_MASTER_PORT \
-              --deploy-mode cluster \
+            $ETL_IMG spark-submit --master spark://$SPARK_MASTER_HOST:$SPARK_MASTER_PORT \
               --packages mysql:mysql-connector-java:9.1.0,com.clickhouse:clickhouse-jdbc:0.6.3:all \
-                local:///pyspark-etl-job/app/main.py
+                app/main.py
 
     - name: Run reporter in mysql
       shell: bash
