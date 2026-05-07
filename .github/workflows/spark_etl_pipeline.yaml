@@ -173,7 +173,7 @@ jobs:
           --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
             $ETL_IMG spark-submit --master spark://${{ secrets.SPARK_MASTER_HOST }}:${{ secrets.SPARK_MASTER_PORT }} \
-              --packages com.mysql:mysql-connector-j:9.1.0,com.clickhouse:clickhouse-jdbc:0.6.0 \
+              --packages com.mysql:mysql-connector-j:9.1.0,com.clickhouse:clickhouse-jdbc:0.6.0:all \
                 app/main.py
 
     - name: Run reporter in mysql
