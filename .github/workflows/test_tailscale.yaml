@@ -10,12 +10,11 @@ concurrency:
 jobs:
   test_tailscale:
     runs-on: ubuntu-22.04
+    
     env:
       NETWORK_NAME: analytics_network
       CLICKHOUSE_HOST: clickhouse-server
       CLICKHOUSE_PORT: 8123
-    
-    runs-on: ubuntu-22.04
 
     steps:
     
