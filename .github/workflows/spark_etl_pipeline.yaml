@@ -178,7 +178,7 @@ jobs:
 
     - name: test
       shell: bash
-      run: docker logs clickhouse-server
+      run: docker exec -i clickhouse-server cat /var/log/clickhouse-server/clickhouse-server.err.log
 
     - name: Run reporter in mysql
       shell: bash
