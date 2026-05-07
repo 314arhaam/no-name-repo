@@ -23,9 +23,14 @@ mysql_df.printSchema()
 mysql_df.show(5)
 
 transformed_df = mysql_df \
-    .groupBy("create_at") \
+    .withColumn("date_", F.to_date("create_at"))
+    .groupBy("date_") \
     .agg(F.countDistinct("order_id").alias("order_count")) \
-    .withColumnRenamed("create_at", "date_")
+    .select("date_", "order_count")
+
+print("[*] Transform Done:")
+transformed_df.printSchema()
+transformed_df.show(5)
 
 sink_db = "analytics"
 sink_table = "daily_order"
