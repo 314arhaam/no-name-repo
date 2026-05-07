@@ -20,7 +20,7 @@ jobs:
       NETWORK_NAME: analytics_network
       MYSQL_HOST: mysql_server
       MYSQL_PORT: 3306
-      CLICKHOUSE_HOST: clickhouse_server
+      CLICKHOUSE_HOST: clickhouse-server
       CLICKHOUSE_PORT: 8123
     
     runs-on: ubuntu-22.04
