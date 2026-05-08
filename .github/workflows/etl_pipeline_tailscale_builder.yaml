@@ -307,11 +307,11 @@ jobs:
     strategy:
       matrix:
         component:
-          - image: ${{ env.DATA_SOURCE_IMG }}
+          - image: DATA_SOURCE_IMG
             path: ./utils/static-ecommerce
-          - image: ${{ env.ETL_IMG }}
+          - image: ETL_IMG
             path: ./services/etl
-          - image: ${{ env.REPORTER_IMG }}
+          - image: REPORTER_IMG
             path: ./services/reporter
     
     runs-on: ubuntu-22.04
@@ -328,7 +328,7 @@ jobs:
 
     - name: utility step
       shell: bash
-      if: ${{ matrix.component.path }} == './services/etl'
+      if: matrix.component.path == './services/etl'
       run: cp -r ../reporter/app/src/ app/
 
     - name: Bulid ${{ matrix.component.image }}
