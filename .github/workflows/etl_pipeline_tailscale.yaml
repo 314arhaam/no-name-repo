@@ -64,7 +64,6 @@ jobs:
             echo "Waiting to finish $REDIS_HOST"; 
             sleep 2; 
           done;
-        '
 
   provision_mysql_server:
     env:
@@ -163,7 +162,6 @@ jobs:
             echo "Waiting to finish $MYSQL_HOST"; 
             sleep 2; 
           done;
-        '
 
   provision_clickhouse_server:
     env:
@@ -233,7 +231,6 @@ jobs:
             echo "Waiting to finish $CLICKHOUSE_HOST"; 
             sleep 2; 
           done;
-        '
 
   verify_mysql:
     env:
@@ -500,7 +497,7 @@ jobs:
         tags: tag:ci
         retry: 3
     
-    - name: Submit and forget
+    - name: Terminate Infra
       working-directory: ./utils/controller
       shell: bash
       run: |
