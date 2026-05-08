@@ -24,6 +24,7 @@ jobs:
       ETL_IMG: "etl:latest"
       REPORTER_IMG: "reporter:latest"
       NETWORK_NAME: analytics_network
+      MYSQL_CONTAINER: mysql_server
     
     runs-on: ubuntu-22.04
 
@@ -68,12 +69,12 @@ jobs:
       run: |
         echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
         echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+        echo "MYSQL_CONTAINER=$MYSQL_CONTAINER" >> .env
         echo "MYSQL_PORT=$MYSQL_PORT" >> .env
         timeout 60s bash -c '
         until 
           source .env;
-          sudo docker exec -i -e MYSQL_PWD=$MYSQL_PASSWORD $MYSQL_HOST mysql -u$MYSQL_USER -e"SELECT 1;" --silent; 
+          sudo docker exec -i -e MYSQL_PWD=$MYSQL_PASSWORD $MYSQL_CONTAINER mysql -u$MYSQL_USER -e"SELECT 1;" --silent; 
           do 
             echo "Waiting for MySQL"; 
             sleep 2; 
@@ -83,11 +84,11 @@ jobs:
       shell: bash
       run: |
         echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
-        echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+        echo "MYSQL_CONTAINER=$MYSQL_CONTAINER" >> .env
         echo "MYSQL_PORT=$MYSQL_PORT" >> .env
         source .env;
-        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_HOST mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
-        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_HOST mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
+        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_CONTAINER mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
+        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_CONTAINER mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
 
 
     - name: Wait
