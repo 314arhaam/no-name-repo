@@ -36,4 +36,4 @@ if __name__ == '__main__':
     if config.get("output"):
         data.to_csv(config["output"])
     else:
-        print(data.head())
+        print(data)
