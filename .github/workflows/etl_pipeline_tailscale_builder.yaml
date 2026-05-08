@@ -1,0 +1,537 @@
+name: ETL Pipeline - Multi VM
+
+on:
+  workflow_dispatch:
+  #push:
+  #  branches: [ "main" ]
+  #pull_request:
+  #  branches: [ "main" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MYSQL_HOST: mysql-host-ts
+  CLICKHOUSE_HOST: clickhouse-host-ts
+  REDIS_HOST: redis-host-ts
+  MYSQL_PORT: 3306
+  CLICKHOUSE_PORT: 8123
+  REDIS_PORT: 6379
+
+jobs:
+
+  provision_redis:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+        hostname: ${{ env.REDIS_HOST }}
+
+    - name: Docker compose Redis
+      shell: bash
+      working-directory: ./infra/redis
+      run: |
+        docker compose up --build -d
+
+    - name: Checking REDIS
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install -r requirements.txt
+        timeout 60s bash -c '
+        until 
+          python3 main.py ping; 
+          do 
+            echo "Waiting for REDIS"; 
+            sleep 2; 
+          done;
+        '
+    
+    - name: Submit and forget
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        python3 main.py start --dep $REDIS_HOST --job main
+        until 
+          python3 main.py term --dep $REDIS_HOST
+          do 
+            echo "Waiting to finish $REDIS_HOST"; 
+            sleep 2; 
+          done;
+
+  provision_mysql_server:
+    env:
+      DATA_SOURCE_IMG: "ecommerce:latest"
+      ETL_IMG: "etl:latest"
+      REPORTER_IMG: "reporter:latest"
+      NETWORK_NAME: analytics_network
+      MYSQL_CONTAINER: mysql_server
+    
+    runs-on: ubuntu-22.04
+
+    steps:
+    
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+        hostname: ${{ env.MYSQL_HOST }}
+
+    - name: Create docker network
+      shell: bash
+      run: docker network create --attachable --driver bridge $NETWORK_NAME
+    
+    - name: Verify network
+      shell: bash
+      run: |
+        NET_DATA=$(docker network ls --filter "NAME=$NETWORK_NAME" --format json | jq)
+        if [[ $NET_DATA == "" ]]; then 
+          echo "Network not found"
+          exit 1; 
+        else 
+          echo "$NET_DATA"
+        fi
+    
+    - name: Docker compose MySQL
+      shell: bash
+      working-directory: ./infra/mysql
+      run: |
+        echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
+        docker compose up --build -d
+
+    - name: Checking MySQL
+      shell: bash
+      run: |
+        echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+        echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+        echo "MYSQL_CONTAINER=$MYSQL_CONTAINER" >> .env
+        echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+        timeout 60s bash -c '
+        until 
+          source .env;
+          sudo docker exec -i -e MYSQL_PWD=$MYSQL_PASSWORD $MYSQL_CONTAINER mysql -u$MYSQL_USER -e"SELECT 1;" --silent; 
+          do 
+            echo "Waiting for MySQL"; 
+            sleep 2; 
+          done;
+        '
+    - name: Grant permission on MySQL table to app user
+      shell: bash
+      run: |
+        echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+        echo "MYSQL_CONTAINER=$MYSQL_CONTAINER" >> .env
+        echo "MYSQL_PORT=$MYSQL_PORT" >> .env
+        source .env;
+        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_CONTAINER mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
+        docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_CONTAINER mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
+
+    - name: Checking REDIS
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install -r requirements.txt
+        timeout 60s bash -c '
+        until 
+          python3 main.py ping; 
+          do 
+            echo "Waiting for REDIS"; 
+            sleep 2; 
+          done;
+        '
+
+    - name: Submit and forget
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        python3 main.py start --dep $MYSQL_HOST --job main
+        until 
+          python3 main.py term --dep $MYSQL_HOST
+          do 
+            echo "Waiting to finish $MYSQL_HOST"; 
+            sleep 2; 
+          done;
+
+  provision_clickhouse_server:
+    env:
+      DATA_SOURCE_IMG: "ecommerce:latest"
+      ETL_IMG: "etl:latest"
+      REPORTER_IMG: "reporter:latest"
+      NETWORK_NAME: analytics_network
+    
+    runs-on: ubuntu-22.04
+
+    steps:
+    
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+        hostname: ${{ env.CLICKHOUSE_HOST }}
+
+    - name: Create docker network
+      shell: bash
+      run: docker network create --attachable --driver bridge $NETWORK_NAME
+    
+    - name: Verify network
+      shell: bash
+      run: |
+        NET_DATA=$(docker network ls --filter "NAME=$NETWORK_NAME" --format json | jq)
+        if [[ $NET_DATA == "" ]]; then 
+          echo "Network not found"
+          exit 1; 
+        else 
+          echo "$NET_DATA"
+        fi
+    
+    - name: Create .env file for Clickhouse
+      working-directory: ./infra/clickhouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        docker compose up --build -d
+
+    - name: Checking REDIS
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install -r requirements.txt
+        timeout 60s bash -c '
+        until 
+          python3 main.py ping; 
+          do 
+            echo "Waiting for REDIS"; 
+            sleep 2; 
+          done;
+        '
+
+    - name: Submit and forget
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        python3 main.py start --dep $CLICKHOUSE_HOST --job main
+        until 
+          python3 main.py term --dep $CLICKHOUSE_HOST
+          do 
+            echo "Waiting to finish $CLICKHOUSE_HOST"; 
+            sleep 2; 
+          done;
+
+  verify_mysql:
+    env:
+      REPORTER_IMG: "reporter:latest"
+      NETWORK_NAME: host
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+
+    - name: Bulid Reporter
+      shell: bash
+      working-directory: ./services/reporter
+      run: |
+        docker build -t $REPORTER_IMG .
+
+    - name: Ping mysql
+      shell: bash
+      working-directory: ./services/reporter/
+      env:
+        DB_DRIVER: "mysql"
+      run: | 
+        mkdir -p data
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --volume ./data/:/reporter/data \
+          $REPORTER_IMG --file data/config.json
+  
+  verify_clickhouse:
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+    
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3  
+    
+    - name: Checking ClickHouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
+        echo "CLICKHOUSE_PORT=$CLICKHOUSE_PORT" >> .env
+        timeout 120s bash -c '
+        until
+          source .env;
+          DATA=$(curl -s -H "X-ClickHouse-User: $CLICKHOUSE_USER" -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" --data "SELECT 3.14;" "http://$CLICKHOUSE_HOST:$CLICKHOUSE_PORT/"); 
+            do
+              echo "Waiting for ClickHouse";
+              sleep 2;
+            done;
+            echo $DATA
+        '
+  
+  build_data_generator:
+    env:
+      DATA_SOURCE_IMG: "ecommerce:latest"
+      NETWORK_NAME: host
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Login to Dockerhub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+  
+    - name: Bulid source data generator
+      uses: docker/build-and-push-action@v5
+      with:
+        context: ./utils/static-ecommerce
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USER }}/${{ env.DATA_SOURCE_IMG }}
+
+  populate_mysql:
+    needs: 
+      - verify_mysql
+      - build_data_generator
+    env:
+      DATA_SOURCE_IMG: "ecommerce:latest"
+      NETWORK_NAME: host
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+
+    - name: Login to Dockerhub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Pull image
+      shell: bash
+      run: |
+        docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.DATA_SOURCE_IMG }}
+
+    - name: Run source data generator
+      shell: bash
+      run: |
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
+
+  query_on_mysql:
+    needs: populate_mysql
+    env:
+      REPORTER_IMG: "reporter:latest"
+      NETWORK_NAME: host
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+
+    - name: Bulid Reporter
+      shell: bash
+      working-directory: ./services/reporter
+      run: |
+        docker build -t $REPORTER_IMG .
+
+    - name: Run reporter in mysql
+      shell: bash
+      working-directory: ./services/reporter/
+      env:
+        DB_DRIVER: "mysql"
+        QUERY: "SELECT count(distinct order_id) FROM fact.order"
+      run: | 
+        mkdir -p data
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --volume ./data/:/reporter/data \
+          $REPORTER_IMG --file data/config.json
+
+    - name: Run reporter in mysql - show all data
+      shell: bash
+      working-directory: ./services/reporter/
+      env:
+        DB_DRIVER: "mysql"
+        QUERY: "SELECT * FROM fact.order"
+      run: | 
+        mkdir -p data
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --volume ./data/:/reporter/data \
+          $REPORTER_IMG --file data/config.json
+
+  etl_job:
+    needs: 
+      - query_on_mysql
+      - verify_clickhouse
+    env:
+      ETL_IMG: "etl:latest"
+      NETWORK_NAME: host
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+
+    - name: Bulid ETL
+      shell: bash
+      working-directory: ./services/etl
+      run: |
+        cp -r ../reporter/app/src/ app/
+        docker build -t $ETL_IMG .
+    
+    - name: Run ETL
+      shell: bash
+      working-directory: ./services/etl
+      run: |
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --env CLICKHOUSE_HOST=$CLICKHOUSE_HOST \
+          --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
+          --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
+          --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
+          $ETL_IMG
+
+  query_on_clickhouse:
+    needs: etl_job
+    env:
+      REPORTER_IMG: "reporter:latest"
+      NETWORK_NAME: host
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+
+    - name: Bulid Reporter
+      shell: bash
+      working-directory: ./services/reporter
+      run: |
+        docker build -t $REPORTER_IMG .
+    
+    - name: Run reporter in clickhouse
+      shell: bash
+      working-directory: ./services/reporter/
+      env:
+        DB_DRIVER: "clickhouse"
+        QUERY: "SELECT * FROM analytics.daily_order"
+      run: | 
+        mkdir -p data
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
+        docker run \
+          --network $NETWORK_NAME \
+          --env CLICKHOUSE_HOST=$CLICKHOUSE_HOST \
+          --env CLICKHOUSE_PORT=$CLICKHOUSE_PORT \
+          --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
+          --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
+          --volume ./data/:/reporter/data \
+          $REPORTER_IMG --file data/config.json
+  
+  clean-up:
+    needs: query_on_clickhouse
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+    
+    - name: Terminate Infra
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install -r requirements.txt
+        python3 main.py finish --dep $MYSQL_HOST --job main
+        python3 main.py finish --dep $CLICKHOUSE_HOST --job main
+        python3 main.py finish --dep $REDIS_HOST --job main
