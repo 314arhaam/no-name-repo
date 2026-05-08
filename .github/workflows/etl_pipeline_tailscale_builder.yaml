@@ -307,11 +307,11 @@ jobs:
     strategy:
       matrix:
         component:
-          - image: $DATA_SOURCE_IMG
+          - image: "ecommerce:latest"
             path: ./utils/static-ecommerce
-          - image: $ETL_IMG
+          - image: "etl:latest"
             path: ./services/etl
-          - image: $REPORTER_IMG
+          - image: "reporter:latest"
             path: ./services/reporter
     
     runs-on: ubuntu-22.04
