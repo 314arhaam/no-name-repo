@@ -14,10 +14,58 @@ concurrency:
 env:
   MYSQL_HOST: mysql-host-ts
   CLICKHOUSE_HOST: clickhouse-host-ts
+  REDIS_HOST: redis-host-ts
   MYSQL_PORT: 3306
   CLICKHOUSE_PORT: 8123
+  REDIS_PORT: 6379
 
 jobs:
+
+  provision_redis:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+        hostname: ${{ env.REDIS_HOST }}
+
+    - name: Docker compose Redis
+      shell: bash
+      working-directory: ./infra/redis
+      run: |
+        docker compose up --build -d
+
+    - name: Checking REDIS
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        timeout 60s bash -c '
+        until 
+          python3 main.py ping; 
+          do 
+            echo "Waiting for REDIS"; 
+            sleep 2; 
+          done;
+        '
+    
+    - name: Submit and forget
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install requirements.txt
+        python3 main.py start --dep $REDIS_HOST --job main
+        until 
+          python3 main.py term --dep $REDIS_HOST
+          do 
+            echo "Waiting to finish $REDIS_HOST"; 
+            sleep 2; 
+          done;
+        '
+
   provision_mysql_server:
     env:
       DATA_SOURCE_IMG: "ecommerce:latest"
@@ -91,9 +139,19 @@ jobs:
         docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_CONTAINER mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
 
 
-    - name: Wait
+    - name: Submit and forget
+      working-directory: ./utils/controller
       shell: bash
-      run: sleep 360
+      run: |
+        pip install requirements.txt
+        python3 main.py start --dep $MYSQL_HOST --job main
+        until 
+          python3 main.py term --dep $MYSQL_HOST
+          do 
+            echo "Waiting to finish $MYSQL_HOST"; 
+            sleep 2; 
+          done;
+        '
 
   provision_clickhouse_server:
     env:
@@ -138,9 +196,19 @@ jobs:
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
         docker compose up --build -d
 
-    - name: Wait
+    - name: Submit and forget
+      working-directory: ./utils/controller
       shell: bash
-      run: sleep 360
+      run: |
+        pip install requirements.txt
+        python3 main.py start --dep $CLICKHOUSE_HOST --job main
+        until 
+          python3 main.py term --dep $CLICKHOUSE_HOST
+          do 
+            echo "Waiting to finish $CLICKHOUSE_HOST"; 
+            sleep 2; 
+          done;
+        '
 
   verify_mysql:
     env:
@@ -398,3 +466,24 @@ jobs:
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
           --volume ./data/:/reporter/data \
           $REPORTER_IMG --file data/config.json
+  
+  clean-up:
+    needs: query_on_clickhouse
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+    
+    - name: Submit and forget
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install requirements.txt
+        python3 main.py finish --dep $MYSQL_HOST --job main
+        python3 main.py finish --dep $CLICKHOUSE_HOST --job main
+        python3 main.py finish --dep $REDIS_HOST --job main
