@@ -43,6 +43,7 @@ jobs:
       working-directory: ./utils/controller
       shell: bash
       run: |
+        pip install requirements.txt
         timeout 60s bash -c '
         until 
           python3 main.py ping; 
@@ -56,7 +57,6 @@ jobs:
       working-directory: ./utils/controller
       shell: bash
       run: |
-        pip install requirements.txt
         python3 main.py start --dep $REDIS_HOST --job main
         until 
           python3 main.py term --dep $REDIS_HOST
@@ -138,12 +138,24 @@ jobs:
         docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_CONTAINER mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON dim.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
         docker exec -i -e MYSQL_PWD=$MYSQL_ROOT_PASSWORD $MYSQL_CONTAINER mysql -uroot -e"GRANT SELECT,INSERT,UPDATE,DELETE ON fact.* TO '${{ secrets.MYSQL_USER }}'@'%';" --silent;
 
+    - name: Checking REDIS
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install requirements.txt
+        timeout 60s bash -c '
+        until 
+          python3 main.py ping; 
+          do 
+            echo "Waiting for REDIS"; 
+            sleep 2; 
+          done;
+        '
 
     - name: Submit and forget
       working-directory: ./utils/controller
       shell: bash
       run: |
-        pip install requirements.txt
         python3 main.py start --dep $MYSQL_HOST --job main
         until 
           python3 main.py term --dep $MYSQL_HOST
@@ -196,11 +208,24 @@ jobs:
         echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
         docker compose up --build -d
 
-    - name: Submit and forget
+    - name: Checking REDIS
       working-directory: ./utils/controller
       shell: bash
       run: |
         pip install requirements.txt
+        timeout 60s bash -c '
+        until 
+          python3 main.py ping; 
+          do 
+            echo "Waiting for REDIS"; 
+            sleep 2; 
+          done;
+        '
+
+    - name: Submit and forget
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
         python3 main.py start --dep $CLICKHOUSE_HOST --job main
         until 
           python3 main.py term --dep $CLICKHOUSE_HOST
