@@ -238,7 +238,25 @@ jobs:
       working-directory: ./services/reporter/
       env:
         DB_DRIVER: "mysql"
-        QUERY: "SELECT count(order_id) FROM fact.order"
+        QUERY: "SELECT count(distinct order_id) FROM fact.order"
+      run: | 
+        mkdir -p data
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --volume ./data/:/reporter/data \
+          $REPORTER_IMG --file data/config.json
+
+    - name: Run reporter in mysql - show all data
+      shell: bash
+      working-directory: ./services/reporter/
+      env:
+        DB_DRIVER: "mysql"
+        QUERY: "SELECT * FROM fact.order"
       run: | 
         mkdir -p data
         echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
