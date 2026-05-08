@@ -25,7 +25,12 @@ if __name__ == '__main__':
     if config.get("query"):
         data = driver.query_df(config["query"])
     else:
-        data = driver.ping()
+        for i in range(20):
+            try:
+                data = driver.ping()
+            except Exception as e:
+                print(f"Error in ping {e} - retry {i+1} of 20")
+                time.sleep(3)
         print(data)
         sys.exit()
     if config.get("output"):

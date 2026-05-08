@@ -142,7 +142,80 @@ jobs:
       shell: bash
       run: sleep 210
 
+  verify_mysql:
+    env:
+      REPORTER_IMG: "reporter:latest"
+      NETWORK_NAME: host
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+
+    - name: Bulid Reporter
+      shell: bash
+      working-directory: ./services/reporter
+      run: |
+        docker build -t $REPORTER_IMG .
+
+    - name: Ping mysql
+      shell: bash
+      working-directory: ./services/reporter/
+      env:
+        DB_DRIVER: "mysql"
+      run: | 
+        mkdir -p data
+        echo '{"driver": "${{ env.DB_DRIVER }}", "query": "${{ env.QUERY }}"}' > data/config.json
+        docker run \
+          --network $NETWORK_NAME \
+          --env MYSQL_HOST=$MYSQL_HOST \
+          --env MYSQL_PORT=$MYSQL_PORT \
+          --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          --volume ./data/:/reporter/data \
+          $REPORTER_IMG --file data/config.json
+  
+  verify_clickhouse:
+    
+    runs-on: ubuntu-22.04
+    
+    steps:
+    
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3  
+    
+    - name: Checking ClickHouse
+      shell: bash
+      run: |
+        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
+        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
+        echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
+        echo "CLICKHOUSE_PORT=$CLICKHOUSE_PORT" >> .env
+        timeout 120s bash -c '
+        until
+          source .env;
+          DATA=$(curl -s -H "X-ClickHouse-User: $CLICKHOUSE_USER" -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" --data "SELECT 3.14;" "http://$CLICKHOUSE_HOST:$CLICKHOUSE_PORT/"); 
+            do
+              echo "Waiting for ClickHouse";
+              sleep 2;
+            done;
+            echo $DATA
+        '
+  
   populate_mysql:
+    needs: verify_mysql
     env:
       DATA_SOURCE_IMG: "ecommerce:latest"
       NETWORK_NAME: host
@@ -180,39 +253,7 @@ jobs:
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
           $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
-  
-  verify_clickhouse:
-    
-    runs-on: ubuntu-22.04
-    
-    steps:
-    
-    - uses: actions/checkout@v4
 
-    - uses: tailscale/github-action@v3
-      with:
-        authkey: ${{ secrets.TS_AUTH_KEY }}
-        tags: tag:ci
-        retry: 3  
-    
-    - name: Checking ClickHouse
-      shell: bash
-      run: |
-        echo "CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }}" >> .env
-        echo "CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }}" >> .env
-        echo "CLICKHOUSE_HOST=$CLICKHOUSE_HOST" >> .env
-        echo "CLICKHOUSE_PORT=$CLICKHOUSE_PORT" >> .env
-        timeout 120s bash -c '
-        until
-          source .env;
-          DATA=$(curl -s -H "X-ClickHouse-User: $CLICKHOUSE_USER" -H "X-ClickHouse-Key: $CLICKHOUSE_PASSWORD" --data "SELECT 3.14;" "http://$CLICKHOUSE_HOST:$CLICKHOUSE_PORT/"); 
-            do
-              echo "Waiting for ClickHouse";
-              sleep 2;
-            done;
-            echo $DATA
-        '
-  
   query_on_mysql:
     needs: populate_mysql
     env:
