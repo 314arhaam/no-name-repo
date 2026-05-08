@@ -43,7 +43,7 @@ jobs:
       working-directory: ./utils/controller
       shell: bash
       run: |
-        pip install requirements.txt
+        pip install -r requirements.txt
         timeout 60s bash -c '
         until 
           python3 main.py ping; 
@@ -142,7 +142,7 @@ jobs:
       working-directory: ./utils/controller
       shell: bash
       run: |
-        pip install requirements.txt
+        pip install -r requirements.txt
         timeout 60s bash -c '
         until 
           python3 main.py ping; 
@@ -212,7 +212,7 @@ jobs:
       working-directory: ./utils/controller
       shell: bash
       run: |
-        pip install requirements.txt
+        pip install -r requirements.txt
         timeout 60s bash -c '
         until 
           python3 main.py ping; 
@@ -508,7 +508,7 @@ jobs:
       working-directory: ./utils/controller
       shell: bash
       run: |
-        pip install requirements.txt
+        pip install -r requirements.txt
         python3 main.py finish --dep $MYSQL_HOST --job main
         python3 main.py finish --dep $CLICKHOUSE_HOST --job main
         python3 main.py finish --dep $REDIS_HOST --job main
