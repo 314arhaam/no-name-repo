@@ -1,6 +1,6 @@
 import src.mysql
 import src.clickhouse
-import sys, json, argparse, os
+import sys, json, argparse, os, time
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Query to Dataframe CLI")
