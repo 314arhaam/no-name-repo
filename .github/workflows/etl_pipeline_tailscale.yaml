@@ -1,4 +1,4 @@
-name: ETL Pipeline
+name: ETL Pipeline - Multi VM
 
 on:
   workflow_dispatch:
