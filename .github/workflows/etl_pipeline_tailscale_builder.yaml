@@ -329,7 +329,9 @@ jobs:
     - name: utility step
       shell: bash
       if: matrix.component.path == './services/etl'
-      run: cp -r ../reporter/app/src/ app/
+      run: |
+        cd ${{ matrix.component.path }}
+        cp -r ../reporter/app/src/ app/
 
     - name: Bulid ${{ matrix.component.image }}
       uses: docker/build-push-action@v5
