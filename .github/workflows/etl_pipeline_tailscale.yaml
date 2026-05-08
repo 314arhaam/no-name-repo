@@ -331,10 +331,6 @@ jobs:
       run: |
         docker build -t $DATA_SOURCE_IMG .
 
-    - name: wait
-      shell: bash
-      run: sleep 30
-
     - name: Run source data generator
       shell: bash
       working-directory: ./utils/static-ecommerce
