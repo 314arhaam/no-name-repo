@@ -18,9 +18,11 @@ env:
   MYSQL_PORT: 3306
   CLICKHOUSE_PORT: 8123
   REDIS_PORT: 6379
+  DATA_SOURCE_IMG: "ecommerce:latest"
+  ETL_IMG: "etl:latest"
+  REPORTER_IMG: "reporter:latest"
 
 jobs:
-
   provision_redis:
     runs-on: ubuntu-22.04
     steps:
@@ -67,9 +69,6 @@ jobs:
 
   provision_mysql_server:
     env:
-      DATA_SOURCE_IMG: "ecommerce:latest"
-      ETL_IMG: "etl:latest"
-      REPORTER_IMG: "reporter:latest"
       NETWORK_NAME: analytics_network
       MYSQL_CONTAINER: mysql_server
     
@@ -304,10 +303,16 @@ jobs:
             echo $DATA
         '
   
-  build_data_generator:
-    env:
-      DATA_SOURCE_IMG: "ecommerce:latest"
-      NETWORK_NAME: host
+  build_images:
+    strategy:
+      matrix:
+        component:
+          - image: ${{ env.DATA_SOURCE_IMG }}
+            path: ./utils/static-ecommerce
+          - image: ${{ env.ETL_IMG }}
+            path: ./services/etl
+          - image: ${{ env.REPORTER_IMG }}
+            path: ./services/reporter
     
     runs-on: ubuntu-22.04
     
@@ -320,20 +325,24 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-  
-    - name: Bulid source data generator
+
+    - name: utility step
+      shell: bash
+      if: ${{ matrix.component.path }} == './services/etl'
+      run: cp -r ../reporter/app/src/ app/
+
+    - name: Bulid ${{ matrix.component.image }}
       uses: docker/build-push-action@v5
       with:
-        context: ./utils/static-ecommerce
+        context: ${{ matrix.component.path }}
         push: true
-        tags: ${{ secrets.DOCKERHUB_USER }}/${{ env.DATA_SOURCE_IMG }}
+        tags: ${{ secrets.DOCKERHUB_USER }}/${{ matrix.component.image }}
 
   populate_mysql:
     needs: 
       - verify_mysql
-      - build_data_generator
+      - build_images
     env:
-      DATA_SOURCE_IMG: "ecommerce:latest"
       NETWORK_NAME: host
     
     runs-on: ubuntu-22.04
@@ -389,11 +398,16 @@ jobs:
         tags: tag:ci
         retry: 3
 
-    - name: Bulid Reporter
+    - name: Login to Dockerhub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Pull image
       shell: bash
-      working-directory: ./services/reporter
       run: |
-        docker build -t $REPORTER_IMG .
+        docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.REPORTER_IMG }}
 
     - name: Run reporter in mysql
       shell: bash
@@ -411,7 +425,7 @@ jobs:
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
           --volume ./data/:/reporter/data \
-          $REPORTER_IMG --file data/config.json
+          ${{ secrets.DOCKERHUB_USER }}/${{ env.REPORTER_IMG }} --file data/config.json
 
     - name: Run reporter in mysql - show all data
       shell: bash
@@ -429,7 +443,7 @@ jobs:
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
           --volume ./data/:/reporter/data \
-          $REPORTER_IMG --file data/config.json
+          ${{ secrets.DOCKERHUB_USER }}/${{ env.REPORTER_IMG }} --file data/config.json
 
   etl_job:
     needs: 
@@ -450,14 +464,18 @@ jobs:
         authkey: ${{ secrets.TS_AUTH_KEY }}
         tags: tag:ci
         retry: 3
-
-    - name: Bulid ETL
-      shell: bash
-      working-directory: ./services/etl
-      run: |
-        cp -r ../reporter/app/src/ app/
-        docker build -t $ETL_IMG .
     
+    - name: Login to Dockerhub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Pull image
+      shell: bash
+      run: |
+        docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.ETL_IMG }}
+
     - name: Run ETL
       shell: bash
       working-directory: ./services/etl
@@ -492,11 +510,16 @@ jobs:
         tags: tag:ci
         retry: 3
 
-    - name: Bulid Reporter
+    - name: Login to Dockerhub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Pull image
       shell: bash
-      working-directory: ./services/reporter
       run: |
-        docker build -t $REPORTER_IMG .
+        docker pull ${{ secrets.DOCKERHUB_USER }}/${{ env.REPORTER_IMG }}
     
     - name: Run reporter in clickhouse
       shell: bash
@@ -514,7 +537,7 @@ jobs:
           --env CLICKHOUSE_USER=${{ secrets.CLICKHOUSE_USER }} \
           --env CLICKHOUSE_PASSWORD=${{ secrets.CLICKHOUSE_PASSWORD }} \
           --volume ./data/:/reporter/data \
-          $REPORTER_IMG --file data/config.json
+          ${{ secrets.DOCKERHUB_USER }}/${{ env.REPORTER_IMG }} --file data/config.json
   
   clean-up:
     needs: query_on_clickhouse
