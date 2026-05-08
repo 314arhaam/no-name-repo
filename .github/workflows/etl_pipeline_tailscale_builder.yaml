@@ -1,4 +1,4 @@
-name: ETL Pipeline - Multi VM
+name: ETL Pipeline - Multi VM - Builder
 
 on:
   workflow_dispatch:
@@ -362,13 +362,14 @@ jobs:
     - name: Run source data generator
       shell: bash
       run: |
+        docker images
         docker run \
           --network $NETWORK_NAME \
           --env MYSQL_HOST=$MYSQL_HOST \
           --env MYSQL_PORT=$MYSQL_PORT \
           --env MYSQL_USER=${{ secrets.MYSQL_USER }} \
           --env MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-          $DATA_SOURCE_IMG --user 200 --product 300 --order 1000
+          ${{ secrets.DOCKERHUB_USER }}/$DATA_SOURCE_IMG --user 200 --product 300 --order 1000
 
   query_on_mysql:
     needs: populate_mysql
