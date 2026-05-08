@@ -93,7 +93,7 @@ jobs:
 
     - name: Wait
       shell: bash
-      run: sleep 180
+      run: sleep 210
 
   provision_clickhouse_server:
     env:
@@ -140,7 +140,7 @@ jobs:
 
     - name: Wait
       shell: bash
-      run: sleep 180
+      run: sleep 210
 
   populate_mysql:
     env:
@@ -164,6 +164,10 @@ jobs:
       working-directory: ./utils/static-ecommerce
       run: |
         docker build -t $DATA_SOURCE_IMG .
+
+    - name: wait
+      shell: bash
+      run: sleep 30
 
     - name: Run source data generator
       shell: bash
