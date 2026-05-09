@@ -46,7 +46,7 @@ jobs:
       run: |
         timeout 60s bash -c '
         until
-          RES=$(ssh -o StrictHostKeyChecking=no root@test-host-01 "hostname -I"); 
+          RES=$(ssh -o StrictHostKeyChecking=no root@test-host-01.tail713070.ts.net "hostname -I"); 
           do
           echo "SSH failed"
           done;
