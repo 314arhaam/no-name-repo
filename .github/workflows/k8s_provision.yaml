@@ -266,6 +266,7 @@ jobs:
       - name: 1
         working-directory: ./kube-ansible
         run: |
+          ANSIBLE_HOST_KEY_CHECKING=False
           ansible-playbook -i inventory/k8s-servers.ini kubernetes.yml  --become --become-method=sudo -t preinstall
   
       - name: 2
