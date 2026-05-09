@@ -394,7 +394,7 @@ jobs:
     if: failure()
     
     env:
-      GITHUB_TOKEN: ${{ github.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
     
     steps:
     - name: clean up in failure
