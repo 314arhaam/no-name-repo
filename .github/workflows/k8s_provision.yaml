@@ -9,6 +9,16 @@ env:
 
 jobs:
 
+  kube_ver:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: ver client
+        shell: bash
+        run: kubectl version --client
+      - name: ver
+        shell: bash
+        run: kubectl version
+
   provision_redis:
     runs-on: ubuntu-22.04
     steps:
