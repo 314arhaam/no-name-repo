@@ -85,7 +85,7 @@ jobs:
     strategy:
       matrix:
         component:
-          - hostname: kube-controller-1
+          - hostname: kube-master-1
     steps:
       - uses: actions/checkout@v4
 
@@ -156,6 +156,44 @@ jobs:
               sleep 2; 
             done;
 
+  provision_load_balancer:
+    needs: verify_redis
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        component:
+          - hostname: lb-1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTH_KEY }}
+          tags: tag:ci
+          retry: 3
+          hostname: ${{ matrix.component.hostname }}
+
+      - name: SSH up
+        shell: bash
+        run: sudo tailscale up --ssh --accept-routes --hostname=${{ matrix.component.hostname }}
+      
+      - name: Get hostname
+        shell: bash
+        run: hostname && hostname -I
+
+      - name: Submit and forget
+        working-directory: ./utils/controller
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+          python3 main.py start --dep $REDIS_HOST --job lb
+          until 
+            python3 main.py term --dep $REDIS_HOST
+            do 
+              echo "Waiting to finish $REDIS_HOST"; 
+              sleep 2; 
+            done;
+
   ssh_on_vms:
     needs: verify_redis
     runs-on: ubuntu-22.04
@@ -163,9 +201,10 @@ jobs:
     strategy:
       matrix:
         component:
-          - hostname: kube-controller-1
+          - hostname: kube-master-1
           - hostname: kube-worker-1
           - hostname: kube-worker-2
+          - hostname: lb-1
     
     steps:
 
@@ -243,4 +282,5 @@ jobs:
           pip install -r requirements.txt
           python3 main.py finish --dep $REDIS_HOST --job worker
           python3 main.py finish --dep $REDIS_HOST --job controller
+          python3 main.py finish --dep $REDIS_HOST --job lb
           python3 main.py finish --dep $REDIS_HOST --job main
