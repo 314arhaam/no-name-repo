@@ -216,7 +216,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-install -y ansible
+          sudo apt-get -y ansible
       
       - name: Copy custom k8s config to provisioner
         shell: bash
