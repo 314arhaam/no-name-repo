@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           KUBECTL_PATH=$(which kubectl)
-          if [ -n "$KUBECTL_PATH" ];
+          if [ -n "$KUBECTL_PATH" ]; then
             sudo rm -rf "$KUBECTL_PATH"
             echo "kubectl removed $KUBECTL_PATH"
           else
