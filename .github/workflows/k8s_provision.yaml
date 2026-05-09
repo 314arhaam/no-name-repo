@@ -178,7 +178,7 @@ jobs:
             done;
   
   ssh_on_vms:
-    
+    needs: verify_redis
     runs-on: ubuntu-22.04
     
     strategy:
