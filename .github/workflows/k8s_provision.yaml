@@ -9,28 +9,6 @@ env:
 
 jobs:
 
-  kube_ver:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: kubectl client
-        shell: bash
-        run: kubectl version --client
-
-      - name: Remove kubectl
-        shell: bash
-        run: |
-          KUBECTL_PATH=$(which kubectl)
-          if [ -n "$KUBECTL_PATH" ]; then
-            sudo rm -rf "$KUBECTL_PATH"
-            echo "kubectl removed $KUBECTL_PATH"
-          else
-            echo "No kubectl found"
-          fi
-
-      - name: check kubectl removal
-        shell: bash
-        run: kubectl version --client
-
   provision_redis:
     runs-on: ubuntu-22.04
     steps:
@@ -101,7 +79,7 @@ jobs:
           done;
         '
 
-  provision_controllers:
+  provision_masters:
     needs: verify_redis
     runs-on: ubuntu-22.04
     strategy:
