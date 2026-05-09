@@ -266,10 +266,10 @@ jobs:
       - name: SSH for debug
         shell: bash
         run: |
-          ssh -o StrictHostKeyChecking=no root@$kube-master-1.${TS_DNS} "hostname -I"
-          ssh -o StrictHostKeyChecking=no root@$kube-worker-1.${TS_DNS} "hostname -I"
-          ssh -o StrictHostKeyChecking=no root@$kube-worker-2.${TS_DNS} "hostname -I"
-          ssh -o StrictHostKeyChecking=no root@$lb-1.${TS_DNS} "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@$kube-master-1.${{ secrets.TS_DNS }} "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@$kube-worker-1.${{ secrets.TS_DNS }} "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@$kube-worker-2.${{ secrets.TS_DNS }} "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@$lb-1.${{ secrets.TS_DNS }} "hostname -I"
 
       - name: 1
         working-directory: ./kube-ansible
