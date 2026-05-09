@@ -25,8 +25,8 @@ docker_apt_repo: "https://download.docker.com/linux/ubuntu"
 # Kubernetes
 kubernetes_gpg_keyring_path: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
 kubernetes_gpg_key_url: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/Release.key"
-kubernetes_apt_repo: "https://pkgs.k8s.io/core:/stable:/v1.32/deb/"
-k8s_version: "1.35.3" # see here https://kubernetes.io/releases/patch-releases/ and https://github.com/kubernetes/kubernetes/releases
+kubernetes_apt_repo: "https://pkgs.k8s.io/core:/stable:/v1.35/deb/"
+k8s_version: "1.35.3"
 
 # CRI
 cri_socket: unix:///var/run/containerd/containerd.sock
