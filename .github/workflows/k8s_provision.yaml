@@ -15,7 +15,7 @@ jobs:
         hostname: test-host-01
     - name: ssh up
       shell: bash
-      run: tailscale up --ssh --accept-routes --hostname=test-host-01
+      run: sudo tailscale up --ssh --accept-routes --hostname=test-host-01
     - name: get hostname
       shell: bash
       run: hostname
