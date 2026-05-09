@@ -17,7 +17,14 @@ jobs:
         run: kubectl version --client
       - name: ver
         shell: bash
-        run: kubectl version
+        run: |
+          KUBECTL_PATH=$(which kubectl)
+          if [ -n "$KUBECTL_PATH" ];
+            sudo rm -rf "$KUBECTL_PATH"
+            echo "kubectl removed $KUBECTL_PATH"
+          else
+            echo "No kubectl found"
+          fi
 
   provision_redis:
     runs-on: ubuntu-22.04
