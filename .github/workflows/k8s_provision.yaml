@@ -12,10 +12,11 @@ jobs:
   kube_ver:
     runs-on: ubuntu-22.04
     steps:
-      - name: ver client
+      - name: kubectl client
         shell: bash
         run: kubectl version --client
-      - name: ver
+
+      - name: Remove kubectl
         shell: bash
         run: |
           KUBECTL_PATH=$(which kubectl)
@@ -25,6 +26,10 @@ jobs:
           else
             echo "No kubectl found"
           fi
+
+      - name: check kubectl removal
+        shell: bash
+        run: kubectl version --client
 
   provision_redis:
     runs-on: ubuntu-22.04
@@ -121,6 +126,17 @@ jobs:
         shell: bash
         run: hostname && hostname -I
 
+      - name: Remove kubectl
+        shell: bash
+        run: |
+          KUBECTL_PATH=$(which kubectl)
+          if [ -n "$KUBECTL_PATH" ]; then
+            sudo rm -rf "$KUBECTL_PATH"
+            echo "kubectl removed $KUBECTL_PATH"
+          else
+            echo "No kubectl found"
+          fi
+
       - name: Submit and forget
         working-directory: ./utils/controller
         shell: bash
@@ -160,6 +176,17 @@ jobs:
         shell: bash
         run: hostname && hostname -I
 
+      - name: Remove kubectl
+        shell: bash
+        run: |
+          KUBECTL_PATH=$(which kubectl)
+          if [ -n "$KUBECTL_PATH" ]; then
+            sudo rm -rf "$KUBECTL_PATH"
+            echo "kubectl removed $KUBECTL_PATH"
+          else
+            echo "No kubectl found"
+          fi
+
       - name: Submit and forget
         working-directory: ./utils/controller
         shell: bash
@@ -197,6 +224,17 @@ jobs:
       - name: Get hostname
         shell: bash
         run: hostname && hostname -I
+
+      - name: Remove kubectl
+        shell: bash
+        run: |
+          KUBECTL_PATH=$(which kubectl)
+          if [ -n "$KUBECTL_PATH" ]; then
+            sudo rm -rf "$KUBECTL_PATH"
+            echo "kubectl removed $KUBECTL_PATH"
+          else
+            echo "No kubectl found"
+          fi
 
       - name: Submit and forget
         working-directory: ./utils/controller
@@ -267,7 +305,18 @@ jobs:
           tags: tag:ci
           retry: 3
           hostname: jumpbox-ts
-      
+
+      - name: Remove kubectl
+        shell: bash
+        run: |
+          KUBECTL_PATH=$(which kubectl)
+          if [ -n "$KUBECTL_PATH" ]; then
+            sudo rm -rf "$KUBECTL_PATH"
+            echo "kubectl removed $KUBECTL_PATH"
+          else
+            echo "No kubectl found"
+          fi
+
       - name: install ansible
         shell: bash
         run: |
