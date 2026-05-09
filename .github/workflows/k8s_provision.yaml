@@ -1,0 +1,21 @@
+name: Test for k8s
+
+on:
+  workflow_dispatch:
+
+jobs:
+  node_1:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+        hostname: test-host-01
+    - name: get hostname
+      shell: bash
+      run: hostname
+    - name: get hostname ip
+      shell: bash
+      run: hostname -I
