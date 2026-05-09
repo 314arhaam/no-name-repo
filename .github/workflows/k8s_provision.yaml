@@ -38,12 +38,15 @@ jobs:
     - name: get hostname ip
       shell: bash
       run: hostname -I
-    - name: sleep
-      shell: bash
-      run: sleep 5
     - name: test ssh
       shell: bash
-      run: ssh -o StrictHostKeyChecking=no root@test-host-01 "hostname -I"
+      run: |
+        until
+          RES=$(ssh -o StrictHostKeyChecking=no root@test-host-01 "hostname -I"); 
+          do
+          echo "SSH failed"
+          done;
+          echo $RES
     - name: sleep
       shell: bash
       run: sleep 20
