@@ -44,9 +44,11 @@ jobs:
     - name: test ssh
       shell: bash
       run: |
+        echo "TS_DNS=${{ secrets.TS_DNS }}" > .env
         timeout 60s bash -c '
         until
-          RES=$(ssh -o StrictHostKeyChecking=no root@test-host-01.tail713070.ts.net "hostname -I"); 
+          source .env
+          RES=$(ssh -o StrictHostKeyChecking=no root@test-host-01.${TS_DNS} "hostname -I"); 
           do
           echo "SSH failed"
           done;
