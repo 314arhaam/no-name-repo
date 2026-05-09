@@ -46,7 +46,7 @@ jobs:
       shell: bash
       run: |
         pip install -r requirements.txt
-        timeout 60s bash -c '
+        timeout 120s bash -c '
         until 
           python3 main.py ping; 
           do 
@@ -117,7 +117,7 @@ jobs:
         echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
         echo "MYSQL_CONTAINER=$MYSQL_CONTAINER" >> .env
         echo "MYSQL_PORT=$MYSQL_PORT" >> .env
-        timeout 60s bash -c '
+        timeout 120s bash -c '
         until 
           source .env;
           sudo docker exec -i -e MYSQL_PWD=$MYSQL_PASSWORD $MYSQL_CONTAINER mysql -u$MYSQL_USER -e"SELECT 1;" --silent; 
@@ -141,7 +141,7 @@ jobs:
       shell: bash
       run: |
         pip install -r requirements.txt
-        timeout 60s bash -c '
+        timeout 120s bash -c '
         until 
           python3 main.py ping; 
           do 
@@ -210,7 +210,7 @@ jobs:
       shell: bash
       run: |
         pip install -r requirements.txt
-        timeout 60s bash -c '
+        timeout 120s bash -c '
         until 
           python3 main.py ping; 
           do 
