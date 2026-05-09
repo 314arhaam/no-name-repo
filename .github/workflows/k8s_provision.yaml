@@ -201,8 +201,41 @@ jobs:
             done;
             echo $RES
           '
-  clean-up:
+  
+  jumpbox:
     needs: ssh_on_vms
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: no-name-repo
+      
+      - uses: actions/checkout@v4
+        with:
+          repository: InfraArtists/kube-ansible
+          path: kube-ansible
+      
+      - uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTH_KEY }}
+          tags: tag:ci
+          retry: 3
+          hostname: jumpbox-ts
+      
+      - name: install ansible
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-install -y ansible
+      
+      - name: Copy custom k8s config to provisioner
+        shell: bash
+        run: |
+          cp ./no-name-repo/infra/k8s/k8s-servers.ini ./kube-ansible/inventory/
+          cat ./kube-ansible/inventory/k8s-servers.ini
+  
+  clean-up:
+    needs: jumpbox
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
