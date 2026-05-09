@@ -268,10 +268,10 @@ jobs:
         run: |
           echo "TS_DNS=${{ secrets.TS_DNS }}" >> .env
           source .env
-          ssh -o StrictHostKeyChecking=no root@$kube-master-1.tail713070.ts.net "hostname -I"
-          ssh -o StrictHostKeyChecking=no root@$kube-worker-1.tail713070.ts.net "hostname -I"
-          ssh -o StrictHostKeyChecking=no root@$kube-worker-2.tail713070.ts.net "hostname -I"
-          ssh -o StrictHostKeyChecking=no root@$lb-1.tail713070.ts.net "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@kube-master-1.tail713070.ts.net "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@kube-worker-1.tail713070.ts.net "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@kube-worker-2.tail713070.ts.net "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@lb-1.tail713070.ts.net "hostname -I"
 
       - name: 1
         working-directory: ./kube-ansible
