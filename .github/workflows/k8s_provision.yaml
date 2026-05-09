@@ -294,18 +294,20 @@ jobs:
           else
             echo "No kubectl found"
           fi
+      
+      - name: Copy custom k8s config to provisioner
+        shell: bash
+        run: |
+          cp ./no-name-repo/infra/k8s/k8s-servers.ini ./kube-ansible/inventory/
+          cp ./no-name-repo/infra/k8s/all.yml ./kube-ansible/inventory/group_vars/
+          cat ./kube-ansible/inventory/k8s-servers.ini
+          cat ./kube-ansible/inventory/group_vars/all.yml
 
       - name: install ansible
         shell: bash
         run: |
           sudo apt update
           sudo apt install -y ansible
-      
-      - name: Copy custom k8s config to provisioner
-        shell: bash
-        run: |
-          cp ./no-name-repo/infra/k8s/k8s-servers.ini ./kube-ansible/inventory/
-          cat ./kube-ansible/inventory/k8s-servers.ini
 
       - name: SSH for debug
         shell: bash
