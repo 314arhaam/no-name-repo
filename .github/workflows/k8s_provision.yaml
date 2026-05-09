@@ -8,65 +8,6 @@ env:
   REDIS_PORT: 6379
 
 jobs:
-  node_1:
-    runs-on: ubuntu-22.04
-    steps:
-    - uses: tailscale/github-action@v3
-      with:
-        authkey: ${{ secrets.TS_AUTH_KEY }}
-        tags: tag:ci
-        retry: 3
-        hostname: test-host-01
-    - name: ssh up
-      shell: bash
-      run: sudo tailscale up --ssh --accept-routes --hostname=test-host-01
-    - name: get hostname
-      shell: bash
-      run: hostname
-    - name: get hostname ip
-      shell: bash
-      run: hostname -I
-    - name: sleep
-      shell: bash
-      run: sleep 20
-  
-  node_2:
-    
-    runs-on: ubuntu-22.04
-    
-    steps:
-    
-    - uses: tailscale/github-action@v3
-      with:
-        authkey: ${{ secrets.TS_AUTH_KEY }}
-        tags: tag:ci
-        retry: 3
-        hostname: test-host-02
-    
-    - name: get hostname
-      shell: bash
-      run: hostname
-    
-    - name: get hostname ip
-      shell: bash
-      run: hostname -I
-    
-    - name: test ssh
-      shell: bash
-      run: |
-        echo "TS_DNS=${{ secrets.TS_DNS }}" > .env
-        timeout 60s bash -c '
-        until
-          source .env
-          RES=$(ssh -o StrictHostKeyChecking=no root@test-host-01.${TS_DNS} "hostname -I"); 
-          do
-          echo "SSH failed"
-          done;
-          echo $RES
-        '
-    - name: sleep
-      shell: bash
-      run: sleep 20
 
   provision_redis:
     runs-on: ubuntu-22.04
