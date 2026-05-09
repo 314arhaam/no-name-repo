@@ -13,6 +13,9 @@ jobs:
         tags: tag:ci
         retry: 3
         hostname: test-host-01
+    - name: ssh up
+      shell: bash
+      run: tailscale up --ssh 
     - name: get hostname
       shell: bash
       run: hostname
@@ -41,12 +44,14 @@ jobs:
     - name: test ssh
       shell: bash
       run: |
+        timeout 60s bash -c '
         until
           RES=$(ssh -o StrictHostKeyChecking=no root@test-host-01 "hostname -I"); 
           do
           echo "SSH failed"
           done;
           echo $RES
+        '
     - name: sleep
       shell: bash
       run: sleep 20
