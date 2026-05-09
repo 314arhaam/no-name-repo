@@ -381,13 +381,13 @@ jobs:
           python3 main.py finish --dep $REDIS_HOST --job lb
           python3 main.py finish --dep $REDIS_HOST --job main
   
-    on-failure:
+  on-failure-clean-up:
     
     needs:
-    - clean-up
-    - jumpbox
-    - ssh_on_vms
-    - verify_redis
+      - clean-up
+      - jumpbox
+      - ssh_on_vms
+      - verify_redis
     
     runs-on: ubuntu-22.04
     
