@@ -86,7 +86,6 @@ jobs:
       matrix:
         component:
           - hostname: kube-controller-1
-          - hostname: kube-controller-2
     steps:
       - uses: actions/checkout@v4
 
@@ -126,10 +125,6 @@ jobs:
         component:
           - hostname: kube-worker-1
           - hostname: kube-worker-2
-          - hostname: kube-worker-3
-          - hostname: kube-worker-4
-          - hostname: kube-worker-5
-          - hostname: kube-worker-6
     steps:
       - uses: actions/checkout@v4
 
@@ -169,13 +164,8 @@ jobs:
       matrix:
         component:
           - hostname: kube-controller-1
-          - hostname: kube-controller-2
           - hostname: kube-worker-1
           - hostname: kube-worker-2
-          - hostname: kube-worker-3
-          - hostname: kube-worker-4
-          - hostname: kube-worker-5
-          - hostname: kube-worker-6
     
     steps:
 
