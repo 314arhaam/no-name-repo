@@ -1,0 +1,19 @@
+name: Checking stuff
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    
+    runs-on: ubuntu-22.04
+
+    steps:
+    
+    - name: ls etc
+      shell: bash
+      run: ls /etc
