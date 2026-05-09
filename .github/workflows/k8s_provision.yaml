@@ -38,9 +38,12 @@ jobs:
     - name: get hostname ip
       shell: bash
       run: hostname -I
+    - name: sleep
+      shell: bash
+      run: sleep 5
     - name: test ssh
       shell: bash
-      run: ssh -o StrictHostKeyChecking=no runner@test-host-02 "hostname -I"
+      run: ssh -o StrictHostKeyChecking=no root@test-host-02 "hostname -I"
     - name: sleep
       shell: bash
       run: sleep 20
