@@ -10,7 +10,7 @@ env:
 jobs:
 
   provision_redis:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
 
@@ -58,7 +58,7 @@ jobs:
           done;
   
   verify_redis:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
 
@@ -85,7 +85,7 @@ jobs:
 
   provision_masters:
     needs: verify_redis
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         component:
@@ -134,7 +134,7 @@ jobs:
 
   provision_workers:
     needs: verify_redis
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         component:
@@ -184,7 +184,7 @@ jobs:
 
   provision_load_balancer:
     needs: verify_redis
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         component:
@@ -233,7 +233,7 @@ jobs:
 
   ssh_on_vms:
     needs: verify_redis
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     
     strategy:
       matrix:
@@ -270,7 +270,7 @@ jobs:
   
   jumpbox:
     needs: ssh_on_vms
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -362,7 +362,7 @@ jobs:
 
   clean-up:
     needs: jumpbox
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -390,7 +390,7 @@ jobs:
       - ssh_on_vms
       - verify_redis
     
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     
     if: failure()
     
