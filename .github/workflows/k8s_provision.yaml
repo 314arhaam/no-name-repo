@@ -248,37 +248,12 @@ jobs:
           repository: kubernetes-sigs/kubespray
           path: kubespray
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
       - uses: tailscale/github-action@v3
         with:
           authkey: ${{ secrets.TS_AUTH_KEY }}
           tags: tag:ci
           retry: 3
           hostname: jumpbox-ts
-      
-      - name: Remove ansible
-        shell: bash
-        run: |
-          pip uninstall -y ansible ansible-core
-      
-      - name: Copy custom k8s config to provisioner
-        shell: bash
-        run: |
-          mkdir -p ./kubespray/inventory/my-cluster/
-          cp ./no-name-repo/infra/k8s/hosts.yml ./kubespray/inventory/my-cluster/
-
-      - name: install ansible
-        shell: bash
-        working-directory: ./kubespray
-        run: |
-          VENVDIR=kubespray-venv
-          python3 -m venv $VENVDIR
-          source $VENVDIR/bin/activate
-          pip install -r requirements.txt
 
       - name: SSH for debug
         shell: bash
