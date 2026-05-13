@@ -317,6 +317,7 @@ jobs:
 
       - name: install ansible
         shell: bash
+        working-directory: ./kubespray
         run: |
           VENVDIR=kubespray-venv
           KUBESPRAYDIR=kubespray
