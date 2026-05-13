@@ -13,7 +13,11 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+
+    - name: ls etc
+      shell: bash
+      run: which ansibe
     
     - name: ls etc
       shell: bash
-      run: ls /etc
+      run: whereis ansibe
