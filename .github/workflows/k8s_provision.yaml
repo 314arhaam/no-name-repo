@@ -338,6 +338,8 @@ jobs:
       - name: 1
         working-directory: ./kubespray
         run: |
+          VENVDIR=kubespray-venv
+          source $VENVDIR/bin/activate
           ANSIBLE_HOST_KEY_CHECKING=False
           ansible-playbook -i inventory/my-cluster/hosts.yml  --become --become-user root cluster.yml
 
