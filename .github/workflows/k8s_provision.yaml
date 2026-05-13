@@ -304,6 +304,11 @@ jobs:
             echo "No kubectl found"
           fi
       
+      - name: Remove ansible
+        shell: bash
+        run: |
+          pip uninstall -y ansible ansible-core
+      
       - name: Copy custom k8s config to provisioner
         shell: bash
         run: |
@@ -313,7 +318,6 @@ jobs:
       - name: install ansible
         shell: bash
         run: |
-          rm -rf $(which ansible)
           VENVDIR=kubespray-venv
           KUBESPRAYDIR=kubespray
           python3 -m venv $VENVDIR
