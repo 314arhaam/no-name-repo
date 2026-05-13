@@ -313,6 +313,7 @@ jobs:
       - name: install ansible
         shell: bash
         run: |
+          rm -rf $(which ansible)
           VENVDIR=kubespray-venv
           KUBESPRAYDIR=kubespray
           python3 -m venv $VENVDIR
