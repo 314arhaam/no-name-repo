@@ -14,10 +14,9 @@ jobs:
 
     steps:
 
-    - name: ls etc
+    - name: swap off
       shell: bash
-      run: which ansible
-    
-    - name: ls etc
-      shell: bash
-      run: whereis ansible
+      run: |
+        curl -sLS https://get.k3sup.dev | sh
+        ls -l
+        sudo install k3sup /usr/local/bin/
