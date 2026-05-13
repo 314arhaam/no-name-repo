@@ -17,12 +17,17 @@ jobs:
     - name: swap off
       shell: bash
       run: |
-        curl -sLS https://get.k3sup.dev | sh
+        sudo curl -sLS https://get.k3sup.dev | sh
 
     - name: swap off
       shell: bash
       run: |
-        ls -l
+        ls -l /usr/local/bin/
+
+    - name: swap off
+      shell: bash
+      run: |
+        k3sup --help
 
     - name: swap off
       shell: bash
