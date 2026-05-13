@@ -268,7 +268,6 @@ jobs:
       - name: install k3s
         run: |
           curl -sLS https://get.k3sup.dev | sh
-          sudo install k3sup /usr/local/bin/
 
       - name: configure master
         shell: bash
@@ -276,6 +275,11 @@ jobs:
           k3sup install \
             --ip kube-master-1 \
             --user root
+      
+      - name: test
+        shell: bash
+        run: |
+          ssh -o StrictHostKeyChecking=no root@kube-master-1.tail713070.ts.net "kubectl get nodes -o wide"
 
 
   clean-up:
