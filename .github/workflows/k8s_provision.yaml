@@ -275,7 +275,7 @@ jobs:
           k3sup install \
             --host kube-master-1.tail713070.ts.net \
             --user root \
-            --ssh-key ~/.ssh/id_ed25519
+            --ssh-agent
       
       - name: test
         shell: bash
