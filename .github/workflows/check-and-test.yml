@@ -18,5 +18,13 @@ jobs:
       shell: bash
       run: |
         curl -sLS https://get.k3sup.dev | sh
+
+    - name: swap off
+      shell: bash
+      run: |
         ls -l
+
+    - name: swap off
+      shell: bash
+      run: |
         sudo install k3sup /usr/local/bin/
