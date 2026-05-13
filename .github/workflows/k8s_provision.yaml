@@ -273,7 +273,7 @@ jobs:
         shell: bash
         run: |
           k3sup install \
-            --ip kube-master-1 \
+            --host kube-master-1 \
             --user root
       
       - name: test
