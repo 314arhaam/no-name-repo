@@ -16,8 +16,8 @@ jobs:
 
     - name: ls etc
       shell: bash
-      run: which ansibe
+      run: which ansible
     
     - name: ls etc
       shell: bash
-      run: whereis ansibe
+      run: whereis ansible
