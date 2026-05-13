@@ -340,7 +340,7 @@ jobs:
           VENVDIR=kubespray-venv
           source $VENVDIR/bin/activate
           ANSIBLE_HOST_KEY_CHECKING=False
-          ansible-playbook -i inventory/my-cluster/hosts.yml  --become --become-user root cluster.yml
+          ansible-playbook -i inventory/my-cluster/hosts.yml  --become --become-user root -u root cluster.yml
 
   clean-up:
     needs: jumpbox
