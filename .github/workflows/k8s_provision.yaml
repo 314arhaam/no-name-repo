@@ -241,7 +241,7 @@ jobs:
           - hostname: kube-master-1
           - hostname: kube-worker-1
           - hostname: kube-worker-2
-          - hostname: lb-1
+          #- hostname: lb-1
     
     steps:
 
@@ -278,9 +278,8 @@ jobs:
       
       - uses: actions/checkout@v4
         with:
-          repository: 314arhaam/kube-ansible
-          path: kube-ansible
-          ref: dev/gh-actions
+          repository: kubernetes-sigs/kubespray
+          path: kubespray
       
       - uses: tailscale/github-action@v3
         with:
@@ -303,10 +302,7 @@ jobs:
       - name: Copy custom k8s config to provisioner
         shell: bash
         run: |
-          cp ./no-name-repo/infra/k8s/k8s-servers.ini ./kube-ansible/inventory/
-          cp ./no-name-repo/infra/k8s/all.yml ./kube-ansible/inventory/group_vars/
-          cat ./kube-ansible/inventory/k8s-servers.ini
-          cat ./kube-ansible/inventory/group_vars/all.yml
+          cp ./no-name-repo/infra/k8s/hosts.yml ./kubespray/inventory/my-cluster/hosts.yml
 
       - name: install ansible
         shell: bash
@@ -325,40 +321,10 @@ jobs:
           ssh -o StrictHostKeyChecking=no root@lb-1.tail713070.ts.net "hostname -I"
 
       - name: 1
-        working-directory: ./kube-ansible
+        working-directory: ./kubespray
         run: |
           ANSIBLE_HOST_KEY_CHECKING=False
-          ansible-playbook -i inventory/k8s-servers.ini kubernetes.yml  --become --become-method=sudo -t preinstall
-  
-      - name: 2
-        working-directory: ./kube-ansible
-        run: |
-          ansible-playbook -i inventory/k8s-servers.ini kubernetes.yml  --become --become-method=sudo -t k8s
-
-      - name: 3
-        working-directory: ./kube-ansible
-        run: |
-          ansible-playbook -i inventory/k8s-servers.ini kubernetes.yml  --become --become-method=sudo -t init_k8s
-
-      - name: 4
-        working-directory: ./kube-ansible
-        run: |
-          ansible-playbook -i inventory/k8s-servers.ini kubernetes.yml  --become --become-method=sudo -t join_master
-
-      - name: 5
-        working-directory: ./kube-ansible
-        run: |
-          ansible-playbook -i inventory/k8s-servers.ini kubernetes.yml  --become --become-method=sudo -t join_worker
-
-      - name: 6
-        working-directory: ./kube-ansible
-        run: |
-          ansible-playbook -i inventory/k8s-servers.ini kubernetes.yml --become --become-method=sudo -t lb
-
-      - name: 7
-        working-directory: ./kube-ansible
-        run: |
-          ansible-playbook -i inventory/k8s-servers.ini kubernetes.yml --become --become-method=sudo -t postinstall
+          ansible-playbook -i inventory/my-cluster/hosts.yml  --become --become-user root cluster.yml
 
   clean-up:
     needs: jumpbox
