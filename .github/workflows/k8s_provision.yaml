@@ -273,7 +273,7 @@ jobs:
         shell: bash
         run: |
           k3sup install \
-            --host kube-master-1 \
+            --host kube-master-1.tail713070.ts.net \
             --user root
       
       - name: test
