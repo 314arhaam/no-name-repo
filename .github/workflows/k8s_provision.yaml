@@ -302,6 +302,7 @@ jobs:
       - name: Copy custom k8s config to provisioner
         shell: bash
         run: |
+          mkdir -p ./kubespray/inventory/my-cluster/
           cp ./no-name-repo/infra/k8s/hosts.yml ./kubespray/inventory/my-cluster/
 
       - name: install ansible
