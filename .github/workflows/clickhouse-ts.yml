@@ -88,6 +88,10 @@ jobs:
     - name: Create docker network
       shell: bash
       run: docker network create --attachable --driver bridge $NETWORK_NAME
+
+    - name: Create SSH TS
+      shell: bash
+      run: tailscale set --ssh
     
     - name: Verify network
       shell: bash
