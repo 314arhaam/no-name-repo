@@ -1,0 +1,284 @@
+name: Test for k8s
+
+on:
+  workflow_dispatch:
+
+env:
+  REDIS_HOST: redis-host-ts
+  REDIS_PORT: 6379
+
+jobs:
+
+  provision_redis:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: where is kubectl
+      shell: bash
+      run: whereis kubectl | xargs -n 1
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+        hostname: ${{ env.REDIS_HOST }}
+
+    - name: Docker compose Redis
+      shell: bash
+      working-directory: ./infra/redis
+      run: |
+        docker compose up --build -d
+
+    - name: Checking REDIS
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install -r requirements.txt
+        timeout 60s bash -c '
+        until 
+          python3 main.py ping; 
+          do 
+            echo "Waiting for REDIS"; 
+            sleep 2; 
+          done;
+        '
+    
+    - name: Submit and forget
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        python3 main.py start --dep $REDIS_HOST --job main
+        until 
+          python3 main.py term --dep $REDIS_HOST
+          do 
+            echo "Waiting to finish $REDIS_HOST"; 
+            sleep 2; 
+          done;
+  
+  verify_redis:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: tailscale/github-action@v3
+      with:
+        authkey: ${{ secrets.TS_AUTH_KEY }}
+        tags: tag:ci
+        retry: 3
+        hostname: redis-tester-ts
+    
+    - name: Checking Redis
+      working-directory: ./utils/controller
+      shell: bash
+      run: |
+        pip install -r requirements.txt
+        timeout 60s bash -c '
+        until 
+          python3 main.py ping; 
+          do 
+            echo "Waiting for REDIS"; 
+            sleep 2; 
+          done;
+        '
+
+  provision_masters:
+    needs: verify_redis
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        component:
+          - hostname: kube-master-1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTH_KEY }}
+          tags: tag:ci
+          retry: 3
+          hostname: ${{ matrix.component.hostname }}
+
+      - name: SSH up
+        shell: bash
+        run: sudo tailscale up --ssh --accept-routes --hostname=${{ matrix.component.hostname }}
+      
+      - name: Get hostname
+        shell: bash
+        run: hostname && hostname -I
+
+      - name: Submit and forget
+        working-directory: ./utils/controller
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+          python3 main.py start --dep $REDIS_HOST --job controller
+          until 
+            python3 main.py term --dep $REDIS_HOST
+            do 
+              echo "Waiting to finish $REDIS_HOST"; 
+              sleep 2; 
+            done;
+
+  provision_workers:
+    needs: verify_redis
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        component:
+          - hostname: kube-worker-1
+          - hostname: kube-worker-2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTH_KEY }}
+          tags: tag:ci
+          retry: 3
+          hostname: ${{ matrix.component.hostname }}
+
+      - name: SSH up
+        shell: bash
+        run: sudo tailscale up --ssh --accept-routes --hostname=${{ matrix.component.hostname }}
+      
+      - name: Get hostname
+        shell: bash
+        run: hostname && hostname -I
+
+      - name: Submit and forget
+        working-directory: ./utils/controller
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+          python3 main.py start --dep $REDIS_HOST --job worker
+          until 
+            python3 main.py term --dep $REDIS_HOST
+            do 
+              echo "Waiting to finish $REDIS_HOST"; 
+              sleep 2; 
+            done;
+
+  provision_load_balancer:
+    needs: verify_redis
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        component:
+          - hostname: lb-1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTH_KEY }}
+          tags: tag:ci
+          retry: 3
+          hostname: ${{ matrix.component.hostname }}
+
+      - name: SSH up
+        shell: bash
+        run: sudo tailscale up --ssh --accept-routes --hostname=${{ matrix.component.hostname }}
+      
+      - name: Get hostname
+        shell: bash
+        run: hostname && hostname -I
+
+      - name: Submit and forget
+        working-directory: ./utils/controller
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+          python3 main.py start --dep $REDIS_HOST --job lb
+          until 
+            python3 main.py term --dep $REDIS_HOST
+            do 
+              echo "Waiting to finish $REDIS_HOST"; 
+              sleep 2; 
+            done;
+
+  ssh_on_vms:
+    needs: verify_redis
+    runs-on: ubuntu-24.04
+    
+    strategy:
+      matrix:
+        component:
+          - hostname: kube-master-1
+          - hostname: kube-worker-1
+          - hostname: kube-worker-2
+          #- hostname: lb-1
+    
+    steps:
+
+      - uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTH_KEY }}
+          tags: tag:ci
+          retry: 3
+          hostname: ssh-tester-ts-${{ matrix.component.hostname }}
+      
+      - name: test ssh
+        shell: bash
+        run: |
+          echo "TS_DNS=${{ secrets.TS_DNS }}" >> .env
+          echo "SSH_HOST=${{ matrix.component.hostname }}" >> .env
+          timeout 240s bash -c '
+          until
+            source .env
+            RES=$(ssh -o StrictHostKeyChecking=no root@${SSH_HOST}.${TS_DNS} "hostname -I"); 
+            do
+            echo "SSH failed"
+            sleep 5;
+            done;
+            echo $RES
+          '
+  
+  jumpbox:
+    needs: ssh_on_vms
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: no-name-repo
+      
+      - uses: actions/checkout@v4
+        with:
+          repository: kubernetes-sigs/kubespray
+          path: kubespray
+
+      - uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTH_KEY }}
+          tags: tag:ci
+          retry: 3
+          hostname: jumpbox-ts
+
+      - name: SSH for debug
+        shell: bash
+        run: |
+          sudo tailscale set --ssh
+          echo "TS_DNS=${{ secrets.TS_DNS }}" >> .env
+          source .env
+          ssh -o StrictHostKeyChecking=no root@kube-master-1.tail713070.ts.net "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@kube-worker-1.tail713070.ts.net "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@kube-worker-2.tail713070.ts.net "hostname -I"
+          ssh -o StrictHostKeyChecking=no root@lb-1.tail713070.ts.net "hostname -I"
+      
+      - name: ssh
+        shell: bash
+        run: ls -l .ssh
+      
+      - name: Submit and forget
+        working-directory: ./utils/controller
+        shell: bash
+        run: |
+          pip install -r requirements.txt
+          python3 main.py start --dep $REDIS_HOST --job lb
+          until 
+            python3 main.py term --dep $REDIS_HOST
+            do 
+              echo "Waiting to finish $REDIS_HOST"; 
+              sleep 2; 
+            done;
