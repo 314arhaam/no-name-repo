@@ -1,4 +1,4 @@
-name: Test for k8s
+name: Test for k3s
 
 on:
   workflow_dispatch:
@@ -265,10 +265,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no root@kube-worker-1.tail713070.ts.net "hostname -I"
           ssh -o StrictHostKeyChecking=no root@kube-worker-2.tail713070.ts.net "hostname -I"
           ssh -o StrictHostKeyChecking=no root@lb-1.tail713070.ts.net "hostname -I"
-      
-      - name: ssh
-        shell: bash
-        run: ls -l .ssh
       
       - name: Submit and forget
         working-directory: ./utils/controller
