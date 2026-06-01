@@ -240,13 +240,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: no-name-repo
-      
-      - uses: actions/checkout@v4
-        with:
-          repository: kubernetes-sigs/kubespray
-          path: kubespray
 
       - uses: tailscale/github-action@v3
         with:
